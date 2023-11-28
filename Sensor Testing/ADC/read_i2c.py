@@ -1,12 +1,14 @@
+#! /usr/bin/env python
+
+import board # type: ignore
+import busio # type: ignore
+
 import mcp3424
 
-import smbus
-
-# Initialize I2C bus
-BUS_NUMBER = 1 # Run `i2cdetect -l` for available busses.
-bus = smbus.SMBus(BUS_NUMBER)
+# Initialize I2C bus at the standard mode rate
+bus = busio.I2C(board.SCL, board.SDA, frequency=100000)
 
 #TODO
 
 # Close I2C bus
-bus.close()
+bus.deinit()

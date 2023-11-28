@@ -10,12 +10,12 @@ For help using **Python** to interface with pins on the **Raspberry Pi**, please
 
 The only interfacing modules that should be needed are:
 
-- `smbus` - For **I2C** communication.  
+- `busio` - For **I2C** communication.  
+Documentation can be found here: https://docs.circuitpython.org/en/latest/shared-bindings/busio/.
+
+- `smbus` - Alternative for **I2C** communication.  
 Documentation can be found here: https://smbus2.readthedocs.io/en/latest/index.html.  
 *NOTE:* `smbus` and `smbus2` are equivalent libraries, differing only in their implementations. `smbus` should be pre-installed on **Pi OS** but, if not, `smbus2` should be preferred.
-
-- `busio` - Alternative for **I2C** communication.  
-Documentation can be found here: https://docs.circuitpython.org/en/latest/shared-bindings/busio/.
 
 - `gpiozero` - FOR **GPIO** use.  
 Documentation can be found here: https://gpiozero.readthedocs.io/en/stable/.  

@@ -2,7 +2,7 @@ from typing import Union
 
 from enum import Enum
 
-import smbus
+import busio # type: ignore
 
 # ---== THE MCP3424 DATASHEET ==---
 # https://www.mouser.com/datasheet/2/268/22088c-3136953.pdf
@@ -113,20 +113,29 @@ class ADC:
     def update_config(self, config: int) -> None:
         self.config = config
 
-    def configure_adc(self, bus: smbus.SMBus, address: int) -> None:
+    def configure_adc(self, bus: busio.I2C, address: int) -> None:
         addr = construct_address_byte(address)
         
-        bus.write_byte(addr, self.config)
+        try:
+            assert bus.try_lock()
+            bus.write_byte(addr, self.config)
+        except AssertionError as e: raise e
+        finally: bus.unlock()
         
-    def read_adc(self, bus: smbus.SMBus, address: int) -> float:
+    def read_adc(self, bus: busio.I2C, address: int) -> float:
         addr = construct_address_byte(address)
 
-        read_msg = smbus.i2c_msg.read(addr, 3)
-        bus.i2c_rdwr(read_msg)
-        data: int = 0 #TODO get read output
+        # Read 3 bytes from ADC
+        buffer = bytearray(3)
+        try:
+            assert bus.try_lock()
+            bus.readfrom_into(addr, buffer)
+        except AssertionError as e: raise e
+        finally: bus.unlock()
+        data = int.from_bytes(buffer, byteorder="big")
 
+        # Convert to voltage
         _, _, _, sample_rate, gain = parse_config_byte(self.config)
-
         bits = BITS_PER_RATE[sample_rate]
         converted = (data / (1 << bits)) * (FSR / gain)
 
