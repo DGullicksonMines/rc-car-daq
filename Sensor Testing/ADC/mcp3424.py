@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+from typing import Union
 
 from enum import Enum
 
@@ -69,11 +69,11 @@ def parse_config_byte(config: int) -> ConfigTuple:
 
 def update_config_byte(
     config: int,
-    channel: int | None = None,
-    ready: bool | None = None,
-    continuous_mode: bool | None = None,
-    sample_rate: SampleRate | None = None,
-    gain: int | None = None
+    channel: Union[int, None] = None,
+    ready: Union[bool, None] = None,
+    continuous_mode: Union[bool, None] = None,
+    sample_rate: Union[SampleRate, None] = None,
+    gain: Union[int, None] = None
 ) -> int:
     """Updates a configuration byte."""
     (
