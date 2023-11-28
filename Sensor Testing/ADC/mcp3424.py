@@ -31,11 +31,11 @@ BITS_PER_RATE = {
 ConfigTuple = tuple[int, bool, bool, SampleRate, int]
 
 def construct_config_byte(
-    channel: int = 1,
-    ready: bool = False,
-    continuous_mode: bool = True,
-    sample_rate: SampleRate = SampleRate._240,
-    gain: int = 0
+    channel: int,
+    ready: bool,
+    continuous_mode: bool,
+    sample_rate: SampleRate,
+    gain: int
 ) -> int:
     """Constructs a configuration byte.
     
@@ -105,33 +105,70 @@ def construct_address_byte(address: int) -> int:
     return addr
 
 class ADC:
+    bus: busio.I2C
+    address: int
     config: int
 
-    def __init__(self) -> None:
-        self.config = construct_config_byte()
+    def __init__(
+        self,
+        bus: busio.I2C,
+        address: int,
+        channel: int = 1,
+        ready: bool = False,
+        continuous_mode: bool = True,
+        sample_rate: SampleRate = SampleRate._240,
+        gain: int = 0
+    ) -> None:
+        self.bus = bus
+        self.address = address
+        self.config = construct_config_byte(
+            channel, ready, continuous_mode, sample_rate, gain
+        )
 
-    def update_config(self, config: int) -> None:
-        self.config = config
+    def update_config(
+        self,
+        channel: Union[int, None] = None,
+        ready: Union[bool, None] = None,
+        continuous_mode: Union[bool, None] = None,
+        sample_rate: Union[SampleRate, None] = None,
+        gain: Union[int, None] = None
+    ) -> None:
+        self.config = update_config_byte(
+            self.config, channel, ready, continuous_mode, sample_rate, gain
+        )
 
-    def configure_adc(self, bus: busio.I2C, address: int) -> None:
-        addr = construct_address_byte(address)
+    def configure(self) -> None:
+        addr = construct_address_byte(self.address)
         
         try:
-            assert bus.try_lock()
-            bus.write_byte(addr, self.config)
+            assert self.bus.try_lock()
+            self.bus.write_byte(addr, self.config)
         except AssertionError as e: raise e
-        finally: bus.unlock()
+        finally: self.bus.unlock()
+
+    def update_and_configure(
+        self,
+        channel: Union[int, None] = None,
+        ready: Union[bool, None] = None,
+        continuous_mode: Union[bool, None] = None,
+        sample_rate: Union[SampleRate, None] = None,
+        gain: Union[int, None] = None
+    ) -> None:
+        self.update_config(
+            channel, ready, continuous_mode, sample_rate, gain
+        )
+        self.configure()
         
-    def read_adc(self, bus: busio.I2C, address: int) -> float:
-        addr = construct_address_byte(address)
+    def read(self) -> float:
+        addr = construct_address_byte(self.address)
 
         # Read 3 bytes from ADC
         buffer = bytearray(3)
         try:
-            assert bus.try_lock()
-            bus.readfrom_into(addr, buffer)
+            assert self.bus.try_lock()
+            self.bus.readfrom_into(addr, buffer)
         except AssertionError as e: raise e
-        finally: bus.unlock()
+        finally: self.bus.unlock()
         data = int.from_bytes(buffer, byteorder="big")
 
         # Convert to voltage
