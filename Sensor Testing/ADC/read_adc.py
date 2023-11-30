@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+# Copyright (C) 2023 Dawson J. Gullickson All rights reserved.
+
 import board # type: ignore
 import busio # type: ignore
 
