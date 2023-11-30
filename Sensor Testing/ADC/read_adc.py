@@ -10,9 +10,11 @@ import mcp3424
 # Initialize I2C bus at the standard mode rate
 bus = busio.I2C(board.SCL, board.SDA, frequency=100000)
 
+# Prompt user for ADC's I2C Address
+address = int(input("ADC Address: "))
+
 # ADC initial configuration
-ADDRESS = 0
-adc = mcp3424.ADC(bus, ADDRESS)
+adc = mcp3424.ADC(bus, address)
 adc.configure()
 
 try:
