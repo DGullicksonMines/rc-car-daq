@@ -1,3 +1,5 @@
+# Copyright (C) 2023 Dawson J. Gullickson All rights reserved.
+
 from typing import Union
 
 from enum import Enum
