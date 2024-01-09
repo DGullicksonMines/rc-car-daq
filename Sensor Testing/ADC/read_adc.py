@@ -20,7 +20,7 @@ adc.configure()
 try:
     # Allow user to probe channel voltages
     while True:
-        channel = int(input("Channel"))
+        channel = int(input("Channel: "))
         adc.update_and_configure(channel=channel)
         voltage = adc.read()
         print("Read {} V".format(voltage))
