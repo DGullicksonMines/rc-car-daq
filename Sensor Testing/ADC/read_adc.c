@@ -32,7 +32,7 @@ int probe_loop(ADC adc) {
     // Get voltage
     double voltage;
     if (ADC_read(adc, &voltage) < 0) return -3;
-    printf("Read %d V \n\n", voltage);
+    printf("Read %f V \n\n", voltage);
 
     return 0;
 }
@@ -54,6 +54,6 @@ int main() {
 
     // Loop until no channel entered
     int exit;
-    while ((exit = probe_loop) >= 0);
+    while ((exit = probe_loop(adc)) >= 0);
     if (exit != -1) return -3;
 }

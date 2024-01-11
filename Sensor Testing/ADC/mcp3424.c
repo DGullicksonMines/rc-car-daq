@@ -66,7 +66,7 @@ int ADC_configure(ADC adc) {
     uint8_t config = construct_config_byte(adc.config);
     uint8_t buffer[1] = { config };
     if (_ADC_set_slave_addr(adc) < 0) return -1;
-    if (write(adc.bus, config, 1) != 1) return -2;
+    if (write(adc.bus, buffer, 1) != 1) return -2;
     return 0;
 }
 
