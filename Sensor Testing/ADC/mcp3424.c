@@ -6,6 +6,18 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 
+const double FULL_SCALE_RANGE = 2.048;
+
+uint8_t bits_per_rate(SampleRate sample_rate) {
+    switch (sample_rate) {
+    case HZ240: return 12;
+    case HZ60: return 14;
+    case HZ15: return 16;
+    case HZ3_75: return 18;
+    }
+    return 0; //NOTE Unreachable
+}
+
 uint8_t construct_config_byte(Config config) {
     uint8_t byte = 0;
     byte |= ((config.ready) ? 1:0) << 7;

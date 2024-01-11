@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-const double FULL_SCALE_RANGE = 2.048;
+extern const double FULL_SCALE_RANGE;
 
 typedef enum {
     HZ240 = 0,
@@ -13,14 +13,7 @@ typedef enum {
     HZ3_75 = 3,
 } SampleRate;
 
-uint8_t bits_per_rate(SampleRate sample_rate) {
-    switch (sample_rate) {
-    case HZ240: return 12;
-    case HZ60: return 14;
-    case HZ15: return 16;
-    case HZ3_75: return 18;
-    }
-}
+uint8_t bits_per_rate(SampleRate sample_rate);
 
 typedef enum {
     CH1 = 0,
