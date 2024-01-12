@@ -10,4 +10,4 @@ This directory contains **Python** and **C** code for testing an **MCP3424**. Th
 
 `mcp3424.py` contains helpful code for interfacing with the **MCP3424** over **I2C**.
 
-`mcp3424.c` and `mcp3424.h` are the **C** equivalents and are built to `out/mcp3424.a`.
+`mcp3424.c` and `mcp3424.h` are the **C** equivalents and are built to `out/mcp3424.o`.
