@@ -1,3 +1,5 @@
+// Copyright 2024 by Dawson J. Gullickson
+
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>

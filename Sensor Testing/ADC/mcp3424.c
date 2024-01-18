@@ -1,3 +1,5 @@
+// Copyright 2024 by Dawson J. Gullickson
+
 #include "mcp3424.h"
 
 #include <fcntl.h>

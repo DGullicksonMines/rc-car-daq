@@ -1,3 +1,5 @@
+# Copyright 2024 by Dawson J. Gullickson
+
 builddir := out
 cflags := -Wall -Werror
 lflags := 

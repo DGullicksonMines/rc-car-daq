@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Dawson J. Gullickson All rights reserved.
+# Copyright 2023 by Dawson J. Gullickson
 
 from typing import Union
 

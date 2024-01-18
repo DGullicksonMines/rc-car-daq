@@ -1,3 +1,5 @@
+// Copyright 2024 by Dawson J. Gullickson
+
 #ifndef MCP3424_H
 #define MCP3424_H
 
