@@ -9,14 +9,18 @@
 int16_t read_int(const char *prompt) {
     uint8_t val = 0;
     if (fputs(prompt, stdout) == EOF) {
-        fputs("error: could not show prompt (fputs).", stdout);
+        fputs("error: could not show prompt (fputs). \n", stderr);
         return -1;
     }
     while (true) {
         uint8_t chr = fgetc(stdin);
         if (chr == EOF) {
-            fputs("error: could not read character (fgetc).", stdout);
+            fputs("error: could not read character (fgetc). \n", stderr);
             return -2;
+        }
+        if (chr < '0' || '9' < chr) {
+            fputs("error: invalid character. \n", stderr);
+            return -3;
         }
         if (chr == '\n') break;
         val = val * 10 + (chr - '0');
@@ -27,13 +31,19 @@ int16_t read_int(const char *prompt) {
 int probe_loop(ADC adc) {
     // Prompt channel
     uint16_t channel = read_int("Channel: ");
-    if (channel == 0) return -1;
-    if (channel < 0) return -2;
+    if (channel < 1 || 4 < channel) {
+        fprintf(stderr, "error: invalid channel \"%d\" \n", channel);
+        return -1;
+    }
     adc.config.channel = channel - 1;
 
     // Get voltage
     double voltage;
-    if (ADC_read(adc, &voltage) < 0) return -3;
+    int read_result = ADC_read(adc, &voltage);
+    if (read_result < 0) {
+        fprintf(stderr, "error %d: could not read from ADC \n", read_result);
+        return -2;
+    }
     printf("Read %f V \n\n", voltage);
 
     return 0;
@@ -41,12 +51,19 @@ int probe_loop(ADC adc) {
 
 int main() {
     int16_t address = read_int("ADC Address: ");
-    if (address < 0) return -1;
+    if (address < 0) {
+        fprintf(stderr, "error %d: could not get address \n", address);
+        return -1;
+    }
 
     // Initialize ADC
     char *i2c_bus = "/dev/i2c-2";
     ADC adc;
-    if (ADC_init(&adc, i2c_bus, address) < 0) return -2;
+    int init_result = ADC_init(&adc, i2c_bus, address);
+    if (init_result < 0) {
+        fprintf(stderr, "error %d: could not initialize ADC \n", init_result);
+        return -2;
+    }
     adc.config.channel = 1;
     adc.config.ready = false;
     adc.config.continuous_mode = true;
@@ -55,7 +72,7 @@ int main() {
     ADC_configure(adc);
 
     // Loop until no channel entered
-    int exit;
-    while ((exit = probe_loop(adc)) >= 0);
-    if (exit != -1) return -3;
+    int loop_result;
+    while ((loop_result = probe_loop(adc)) >= 0);
+    if (loop_result != -1) return -3;
 }
