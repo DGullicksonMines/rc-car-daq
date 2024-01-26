@@ -20,7 +20,6 @@ double acc_z_prev = 0;
 double roll = 0;
 double pitch = 0;
 double yaw = 0;
-double heading = 0;
 
 double t_1 = 0;
 double t_2 = 0;
@@ -29,6 +28,8 @@ double dt = 0;
 double vel_x = 0;
 double vel_y = 0;
 double vel_z = 0;
+
+double gravity = 9.81;
 
 void setup() 
 {
@@ -57,10 +58,6 @@ void loop()
   pitch = (float)JY901.stcAngle.Angle[0]/32768*180;
   yaw = (float)JY901.stcAngle.Angle[2]/32768*180;
 
-  // gets heading
-  JY901.GetMag();
-  heading = JY901.stcMag.h[1];
-
   // calcs dt
   t_2 = t_1;
   t_1 = millis();
@@ -68,13 +65,13 @@ void loop()
 
   // integrates velocity
   if (millis()>10) {
-    vel_x = vel_x + dt*(acc_x-acc_x_prev);
-    vel_y = vel_y + dt*(acc_y-acc_y_prev);
-    vel_z = vel_z + dt*(acc_z-acc_z_prev);
+    vel_x = vel_x + gravity*dt*(acc_x-acc_x_prev);
+    vel_y = vel_y + gravity*dt*(acc_y-acc_y_prev);
+    vel_z = vel_z + gravity*dt*(acc_z-acc_z_prev);
   }
   
   // prints everything
-  Serial.println((String)"Acc: "+acc_x+" "+acc_y+" "+acc_z+" | Total Acc "+acc_tot+" | RPY: "+roll+" "+pitch+" "+yaw+" | Heading: "+heading+" | dt "+dt+" | Vel: "+vel_x+" "+vel_y+" "+vel_z);
+  Serial.println((String)"Acc (g): "+acc_x+" "+acc_y+" "+acc_z+" | Total Acc (g) "+acc_tot+" | RPY (degrees): "+roll+" "+pitch+" "+yaw+" | dt (ms) "+dt+" | Vel (m/s): "+vel_x+" "+vel_y+" "+vel_z);
 
   delay(0);
   
