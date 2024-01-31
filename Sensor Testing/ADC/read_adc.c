@@ -57,7 +57,7 @@ int main() {
     }
 
     // Initialize ADC
-    char *i2c_bus = "/dev/i2c-2";
+    char *i2c_bus = "/dev/i2c-1";
     ADC adc;
     int init_result = ADC_init(&adc, i2c_bus, address);
     if (init_result < 0) {
