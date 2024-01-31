@@ -85,10 +85,10 @@ int ADC_read(ADC adc, double *value) {
 
     // Convert to voltage
     uint8_t bits = bits_per_rate(adc.config.sample_rate);
-    double converted = (
+    *value = (
         ((double)data / (1 << bits))
         * (FULL_SCALE_RANGE / adc.config.gain)
     );
 
-    return converted;
+    return 0;
 }
