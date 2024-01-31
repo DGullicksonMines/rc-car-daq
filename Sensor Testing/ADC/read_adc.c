@@ -18,11 +18,11 @@ int16_t read_int(const char *prompt) {
             fputs("error: could not read character (fgetc). \n", stderr);
             return -2;
         }
+        if (chr == '\n') break;
         if (chr < '0' || '9' < chr) {
             fputs("error: invalid character. \n", stderr);
             return -3;
         }
-        if (chr == '\n') break;
         val = val * 10 + (chr - '0');
     }
     return val;
