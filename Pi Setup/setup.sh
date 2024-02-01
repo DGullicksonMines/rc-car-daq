@@ -27,16 +27,24 @@ if (( $PROGRESS < 1 )); then
 	echo -n 1 > "$CACHE"
 fi
 
-
 if (( $PROGRESS < 2 )); then
 	# Install necessary packages
-	sudo apt install git gcc pip
+	sudo apt install git gcc i2c-tools pip
 	sudo apt clean
 
 	echo -n 2 > "$CACHE"
 fi
 
 if (( $PROGRESS < 3 )); then
+	# Configure I2C
+	#NOTE 0 corresponds to *enabling* these interfaces
+	sudo raspi-config nonint do_spi 0
+	sudo raspi-config nonint do_i2c 0
+
+	echo -n 3 > "$CACHE"
+fi
+
+if (( $PROGRESS < 4 )); then
 	# Install Autopi
 	if [[ ! -f "$AUTOPI_TARBALL" ]]; then
 		echo
@@ -46,7 +54,7 @@ if (( $PROGRESS < 3 )); then
 	sudo "$AUTOPI_INSTALL"
 	echo "$DEVICE_ID" > "$DEVICE_ID_FILE"
 
-	echo -n 3 > "$CACHE"
+	echo -n 4 > "$CACHE"
 
 	sudo reboot
 fi
