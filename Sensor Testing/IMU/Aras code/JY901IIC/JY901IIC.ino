@@ -66,7 +66,7 @@ void loop()
 
   acc_x_corr = acc_x*cos(pitch*3.14/180) - acc_z*sin(pitch*3.14/180);
   acc_y_corr = acc_y*cos(roll*3.14/180) - acc_z*sin(roll*3.14/180);
-  acc_z_corr = acc_z*cos(roll*3.14/180)*cos(pitch*3.14/180) + acc_y*sin(roll*3.14/180) + acc_x*sin(pitch*3.14/180);
+  acc_z_corr = acc_z*cos(roll*3.14/180)*cos(pitch*3.14/180) + acc_y*sin(roll*3.14/180) - acc_x*sin(pitch*3.14/180);
 
   // calcs dt
   t_2 = t_1;
