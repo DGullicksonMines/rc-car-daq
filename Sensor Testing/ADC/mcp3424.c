@@ -86,6 +86,7 @@ int ADC_read(ADC adc, double *value) {
     // Convert to voltage
     uint8_t bits = bits_per_rate(adc.config.sample_rate);
     uint8_t gain = 1 << adc.config.gain;
+    data &= (1 << bits) - 1; //TODO handle sign
     *value = (
         ((double)data / (1 << (uint32_t)bits))
         * (FULL_SCALE_RANGE / gain)
