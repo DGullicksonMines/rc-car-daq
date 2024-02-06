@@ -36,6 +36,7 @@ int probe_loop(ADC adc) {
         return -1;
     }
     adc.config.channel = channel - 1;
+    ADC_configure(adc);
 
     // Get voltage
     double voltage;
@@ -64,7 +65,7 @@ int main() {
         fprintf(stderr, "error %d: could not initialize ADC \n", init_result);
         return -2;
     }
-    adc.config.channel = 1;
+    adc.config.channel = CH1;
     adc.config.ready = false;
     adc.config.continuous_mode = true;
     adc.config.sample_rate = HZ240;
