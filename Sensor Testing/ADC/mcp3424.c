@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
+#include <stdio.h> //TODO remove
 
 const double FULL_SCALE_RANGE = 2.048;
 
@@ -90,10 +91,12 @@ int ADC_read(ADC adc, double *value) {
     data |= ((uint32_t)buffer[1]) << 8;
     data |= ((uint32_t)buffer[0]) << 16;
     if (bits == 18) data <<= 8;
+    printf("data: %d \n", data); //TODO remove
 
     // Convert to voltage
     uint8_t gain = 1 << adc.config.gain;
     int32_t data_signed = ~data + 1;
+    printf("sgnd: %d \n", data_signed); //TODO remove
     double LSB = FULL_SCALE_RANGE / (1 << (uint32_t)(bits - 1));
     *value = (double)data_signed * (LSB / gain);
 
