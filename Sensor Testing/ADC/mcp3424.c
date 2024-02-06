@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-#include <stdio.h> //TODO remove
 
 const double FULL_SCALE_RANGE = 2.048;
 
@@ -65,6 +64,10 @@ int ADC_init(ADC *adc, const char *i2c_bus, uint8_t address) {
     return 0;
 }
 
+void ADC_deinit(ADC adc) {
+    close(adc.bus);
+}
+
 int ADC_configure(ADC adc) {
     uint8_t config = construct_config_byte(adc.config);
     uint8_t buffer[1] = { config };
@@ -90,15 +93,18 @@ int ADC_read(ADC adc, double *value) {
     uint32_t data = buffer[2];
     data |= ((uint32_t)buffer[1]) << 8;
     data |= ((uint32_t)buffer[0]) << 16;
-    if (bits == 18) data <<= 8;
-    printf("data: %d \n", data); //TODO remove
+    if (bits != 18) data >>= 8;
+    //XXX I don't understand why there are extra bits
+    //    `data` is 4 times larger than expected (20 bits vs 18 bits expected)
+    data >>= 2;
+    data &= ((uint32_t)1 << bits) - 1;
 
     // Convert to voltage
-    uint8_t gain = 1 << adc.config.gain;
-    int32_t data_signed = ~data + 1;
-    printf("sgnd: %d \n", data_signed); //TODO remove
-    double LSB = FULL_SCALE_RANGE / (1 << (uint32_t)(bits - 1));
-    *value = (double)data_signed * (LSB / gain);
+    int32_t data_signed = data & (((uint32_t)1 << bits) - 1);
+    data_signed -= (data_signed & ((uint32_t)1 << (bits - 1))) << 1;
+    double LSB = FULL_SCALE_RANGE / ((uint32_t)1 << (bits - 1));
+    uint8_t gain = (uint32_t)1 << adc.config.gain;
+    *value = data_signed * (LSB / gain);
 
     return 0;
 }

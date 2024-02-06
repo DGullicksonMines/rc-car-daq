@@ -49,6 +49,8 @@ typedef struct {
 
 int ADC_init(ADC *adc, const char *i2c_bus, uint8_t address);
 
+void ADC_deinit(ADC adc);
+
 int ADC_configure(ADC adc);
 
 int ADC_read(ADC adc, double *value);

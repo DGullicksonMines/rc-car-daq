@@ -36,6 +36,7 @@ int probe_loop(ADC adc) {
         return -1;
     }
     adc.config.channel = channel - 1;
+    adc.config.ready = true;
     ADC_configure(adc);
 
     // Get voltage
@@ -67,7 +68,7 @@ int main() {
     }
     adc.config.channel = CH1;
     adc.config.ready = false;
-    adc.config.continuous_mode = true;
+    adc.config.continuous_mode = false;
     adc.config.sample_rate = HZ240;
     adc.config.gain = 0;
     ADC_configure(adc);
@@ -76,4 +77,7 @@ int main() {
     int loop_result;
     while ((loop_result = probe_loop(adc)) >= 0);
     if (loop_result != -1) return -3;
+
+    // Deinitialize ADC
+    ADC_deinit(adc);
 }
