@@ -78,20 +78,24 @@ int ADC_read(ADC adc, double *value) {
     if (_ADC_set_slave_addr(adc) < 0) return -1;
     if (read(adc.bus, buffer, 3) != 3) return -2;
 
+    // Get bits
+    uint8_t bits;
+    if (adc.config.continuous_mode)
+        bits = bits_per_rate(adc.config.sample_rate);
+    else
+        bits = 18;
+    
     // Combine bytes
     uint32_t data = buffer[2];
     data |= ((uint32_t)buffer[1]) << 8;
     data |= ((uint32_t)buffer[0]) << 16;
+    if (bits == 18) data <<= 8;
 
     // Convert to voltage
-    uint8_t bits = bits_per_rate(adc.config.sample_rate);
     uint8_t gain = 1 << adc.config.gain;
-    int32_t data_signed = data & ((1 << bits) - 1);
-    data_signed -= (data_signed & (1 << (bits - 1))) << 1;
-    *value = (
-        ((double)data_signed / (1 << (uint32_t)(bits - 1)))
-        * (FULL_SCALE_RANGE / gain)
-    );
+    int32_t data_signed = ~data + 1;
+    double LSB = FULL_SCALE_RANGE / (1 << (uint32_t)(bits - 1));
+    *value = (double)data_signed * (LSB / gain);
 
     return 0;
 }
