@@ -1,8 +1,22 @@
+/*
+RPM Test Code - Zander Eggers
+2/7/2024
+Connect Pin 2 to Hall Effect Sensor, 3 to a push button that pulls down to ground and pin 10 to SD Card Writer
+PULLUP RESISTOR ON HALL EFFECT IS NOT REQUIRED
+  let my code handle that for you
+To Use:
+  Run and take data. Press button to stop reading data and give a couple seconds to finish writing if need be.
+  Data will be in the form of microseconds since start.
+    This has precision of up to 4 microseconds - someone should do some math and see what that means in terms of end RPM calc
+    This also means that this code can run for a max of just under 70 minutes
+  Do RPM calculations in post
+*/
+
 #include <SD.h>
 
 #define HALL 2 // Pin connected to Hall Effect Sensor
 #define STOP_BUTTON 3 // Pin connected to Button
-
+#define SD_PIN 10 // Not entirely sure how this works
 
 bool stop = 0;
 
@@ -23,7 +37,7 @@ void H_ISR() {
   static unsigned long* curBuf = buf1;
 
   if(!stop) {
-    curBuf[i] = micros();
+    curBuf[i] = micros(); // accurate to 4 microseconds
 
     i++;
 
@@ -46,6 +60,9 @@ void StopISR() {
 }
 
 void setup() {
+
+  Serial.begin(115200);
+  SD.begin(SD_PIN);
   // put your setup code here, to run once:
   pinMode(HALL, INPUT_PULLUP);
   pinMode(STOP_BUTTON, INPUT_PULLUP);
@@ -59,13 +76,13 @@ void setup() {
 void loop() {
 
   if (buf1Full) {
-    myFile.println(buf1[writeCount++]);
+    sdCard.println(buf1[writeCount++]);
     if (writeCount == 128) {
       writeCount = 0;
       buf1Empty = 1;
     }
   } else if (buf2Full) {
-    myFile.println(buf2[writeCount++]);
+    sdCard.println(buf2[writeCount++]);
     if (writeCount == 128) {
       writeCount = 0;
       buf2Empty = 1;
