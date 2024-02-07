@@ -30,8 +30,6 @@ int current_button_state = LOW;
 int prev_button_state = LOW;
 int recording = 1;
 
-double minimum_acc = 0.05;
-
 void setup() 
 {
   Serial.begin(115200);
@@ -57,13 +55,6 @@ void loop()
   acc_x = (float)JY901.stcAcc.a[0]/32768*16*9.81;
   acc_y = (float)JY901.stcAcc.a[1]/32768*16*9.81;
   acc_z = (float)JY901.stcAcc.a[2]/32768*16*9.81;
-
-  if (abs(acc_x_corr) < minimum_acc){
-    acc_x_corr = 0;
-  }
-  if (abs(acc_y_corr) < minimum_acc){
-    acc_y_corr = 0;
-  }
 
   // calcs dt
   t_2 = t_1;
