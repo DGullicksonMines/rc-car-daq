@@ -1,0 +1,22 @@
+# Copyright 2024 by Dawson J. Gullickson
+
+builddir = out
+cflags = -Wall -Werror
+lflags = 
+
+rule cc
+    command = gcc -MMD -MT $out -MF $out.d $cflags -c $in -o $out
+    description = Compile $out
+    depfile = $out.d
+    deps = gcc
+rule link
+    command = gcc $lflags $in -o $out
+    description = Link $out
+build $builddir/mcp3424.o: cc mcp3424.c
+build $builddir/read_adc: link $builddir/mcp3424.o read_adc.c
+
+rule write
+    command = echo $str > $out
+    description = Writing $out
+build $builddir/.gitignore: write
+    str = "*"

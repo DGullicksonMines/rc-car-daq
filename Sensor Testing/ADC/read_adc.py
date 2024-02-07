@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright (C) 2023 Dawson J. Gullickson All rights reserved.
+# Copyright 2023 by Dawson J. Gullickson
 
 import board # type: ignore
 import busio # type: ignore
@@ -20,7 +20,7 @@ adc.configure()
 try:
     # Allow user to probe channel voltages
     while True:
-        channel = int(input("Channel"))
+        channel = int(input("Channel: "))
         adc.update_and_configure(channel=channel)
         voltage = adc.read()
         print("Read {} V".format(voltage))

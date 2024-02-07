@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Dawson J. Gullickson All rights reserved.
+# Copyright 2023 by Dawson J. Gullickson
 
 from typing import Union
 
@@ -17,16 +17,16 @@ FSR = 2.048
 
 class SampleRate(Enum):
     """Available Sample Rates"""
-    _240 = 0
-    _60 = 1
-    _15 = 2
-    _3_75 = 3
+    HZ240 = 0
+    HZ60 = 1
+    HZ15 = 2
+    HZ3_75 = 3
     
 BITS_PER_RATE = {
-    SampleRate._240: 12,
-    SampleRate._60: 14,
-    SampleRate._15: 16,
-    SampleRate._3_75: 18
+    SampleRate.HZ240: 12,
+    SampleRate.HZ60: 14,
+    SampleRate.HZ15: 16,
+    SampleRate.HZ3_75: 18
 }
 """Data Rates Per Sampling Rate"""
 
@@ -118,7 +118,7 @@ class ADC:
         channel: int = 1,
         ready: bool = False,
         continuous_mode: bool = True,
-        sample_rate: SampleRate = SampleRate._240,
+        sample_rate: SampleRate = SampleRate.HZ240,
         gain: int = 0
     ) -> None:
         self.bus = bus
