@@ -8,7 +8,7 @@ SCL <---> SCL
 */
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   JY901.StartIIC();
 } 
 
@@ -47,6 +47,3 @@ JY901.GetGPSV();
   Serial.println("");
   delay(500);
 }
-
-
-

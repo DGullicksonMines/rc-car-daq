@@ -30,6 +30,8 @@ int current_button_state = LOW;
 int prev_button_state = LOW;
 int recording = 1;
 
+double minimum_acc = 0.05;
+
 void setup() 
 {
   Serial.begin(115200);
@@ -46,24 +48,28 @@ void setup()
 void loop() 
 {
 
-  // gets RPY data
+  // gets RPY and acc data
   JY901.GetAngle();
+  JY901.GetAcc();
   roll = (float)JY901.stcAngle.Angle[0]/32768*180;
   pitch = (float)JY901.stcAngle.Angle[1]/32768*180;
   yaw = (float)JY901.stcAngle.Angle[2]/32768*180;
-  
-  // gets acc data
-  JY901.GetAcc();
   acc_x = (float)JY901.stcAcc.a[0]/32768*16*9.81;
   acc_y = (float)JY901.stcAcc.a[1]/32768*16*9.81;
   acc_z = (float)JY901.stcAcc.a[2]/32768*16*9.81;
+
+  if (abs(acc_x_corr) < minimum_acc){
+    acc_x_corr = 0;
+  }
+  if (abs(acc_y_corr) < minimum_acc){
+    acc_y_corr = 0;
+  }
 
   // calcs dt
   t_2 = t_1;
   t_1 = millis();
   dt = t_1 - t_2;
 
- 
   prev_button_state = current_button_state;
   current_button_state = digitalRead(buttonPin);
 

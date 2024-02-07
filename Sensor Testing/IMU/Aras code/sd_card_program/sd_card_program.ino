@@ -64,26 +64,22 @@ void setup()
   myFile.println("dt (ms),time (sec),acc_x (m/s^2),acc_y (m/s^2),acc_z (m/s^2),acc_x_corr (m/s^2),acc_y_corr (m/s^2),acc_z_corr (m/s^2),roll (deg),pitch (deg),yaw (deg), vel_x (m/s), vel_y (m/s), vel_z (m/s)");
 } 
 
-
-
 void loop() 
 {
 
-  // gets RPY data
+  // gets RPY and acc data
   JY901.GetAngle();
+  JY901.GetAcc();
   roll = (float)JY901.stcAngle.Angle[0]/32768*180;
   pitch = (float)JY901.stcAngle.Angle[1]/32768*180;
   yaw = (float)JY901.stcAngle.Angle[2]/32768*180;
-  
-  // gets acc data
-  JY901.GetAcc();
   acc_x = (float)JY901.stcAcc.a[0]/32768*16*9.81;
   acc_y = (float)JY901.stcAcc.a[1]/32768*16*9.81;
   acc_z = (float)JY901.stcAcc.a[2]/32768*16*9.81;
 
   acc_x_corr = acc_x*cos(pitch*3.14/180) - acc_z*sin(pitch*3.14/180);
   acc_y_corr = acc_y*cos(roll*3.14/180) - acc_z*sin(roll*3.14/180);
-  acc_z_corr = acc_z*cos(roll*3.14/180)*cos(pitch*3.14/180) + acc_y*sin(roll*3.14/180) + acc_x*sin(pitch*3.14/180);
+  acc_z_corr = -acc_z*cos(roll*3.14/180)*cos(pitch*3.14/180) - acc_y*sin(roll*3.14/180) + acc_x*sin(pitch*3.14/180);
 
   // calcs dt
   t_2 = t_1;
@@ -97,7 +93,6 @@ void loop()
     vel_z = vel_z + (acc_z_corr-gravity)*(dt/1000);
   }
 
- 
   prev_button_state = current_button_state;
   current_button_state = digitalRead(buttonPin);
 
