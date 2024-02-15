@@ -1,6 +1,7 @@
 # ADC Testing
 
-This directory contains **Python** and **C** code for testing an **MCP3424**. The **MCP3424** is a **differential 4-channel ADC** capable of **I2C** communication.
+This directory contains **Python** and **C** code for testing an **MCP3424**.
+The **MCP3424** is a **differential 4-channel ADC** capable of **I2C** communication.
 
 **C** code may be built using **ninja** or **make** and will produce outputs in `out/`.
 

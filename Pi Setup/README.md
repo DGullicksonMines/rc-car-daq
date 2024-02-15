@@ -31,8 +31,7 @@ Raspberry Pi OS (other) > Raspberry Pi OS Lite (64-bit)
 1. Put `autopi-install.tgz` in the same directory as `setup.sh`.  
 These files are *not* included in the **Git** repository.
 
-2. Create a file named `autopi-deviceid.txt` and fill
-it with the id shown at https://autopi.mines.edu/register  
+2. Create a file named `autopi-deviceid.txt` and fill it with the id shown at https://autopi.mines.edu/register  
 Ensure that no newlines are present after the id is entered.
 
 3. Run `sudo setup.sh` to complete setup.  
