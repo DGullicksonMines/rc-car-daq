@@ -36,10 +36,12 @@ if (( $PROGRESS < 2 )); then
 fi
 
 if (( $PROGRESS < 3 )); then
-	# Configure I2C
 	#NOTE 0 corresponds to *enabling* these interfaces
+	# Enable I2C
 	sudo raspi-config nonint do_spi 0
 	sudo raspi-config nonint do_i2c 0
+	# Enable SSH
+	sudo raspi-config nonint do_ssh 0
 
 	echo -n 3 > "$CACHE"
 fi
