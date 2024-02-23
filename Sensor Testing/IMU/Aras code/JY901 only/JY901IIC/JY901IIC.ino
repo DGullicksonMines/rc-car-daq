@@ -25,10 +25,6 @@ double roll = 0;
 double pitch = 0;
 double yaw = 0;
 
-double gyro_x = 0;
-double gyro_y = 0;
-double gyro_z = 0;
-
 double t_1 = 0;
 double t_2 = 0;
 double dt = 0;
