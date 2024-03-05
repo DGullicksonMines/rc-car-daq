@@ -4,8 +4,8 @@ builddir := out
 cflags := -Wall -Wextra -Werror -Wunreachable-code -pedantic
 lflags := -lm
 
-$(builddir)/read_adc: $(builddir) mcp3424.c read_adc.c
-	gcc $(cflags) mcp3424.c read_adc.c $(lflags) -o $(builddir)/read_adc
+$(builddir)/read_imu: $(builddir) jy901.c read_imu.c
+	gcc $(cflags) jy901.c read_imu.c $(lflags) -o $(builddir)/read_imu
 
 $(builddir):
 	mkdir $(builddir)

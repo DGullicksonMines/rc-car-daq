@@ -9,7 +9,7 @@ rule clc
     description = Compile and link $out
     depfile = $out.d
     deps = gcc
-build $builddir/read_adc: clc mcp3424.c read_adc.c
+build $builddir/read_imu: clc jy901.c read_imu.c
 
 rule write
     command = echo $str > $out
