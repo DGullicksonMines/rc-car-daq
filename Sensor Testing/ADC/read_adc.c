@@ -14,7 +14,7 @@ int16_t read_int(const char *prompt) {
         return -1;
     }
     while (true) {
-        uint8_t chr = fgetc(stdin);
+        int chr = fgetc(stdin);
         if (chr == EOF) {
             fputs("error: could not read character (fgetc). \n", stderr);
             return -2;
@@ -40,13 +40,15 @@ int probe_loop(ADC adc, double divider_ratio) {
     adc.config.ready = true;
     ADC_configure(adc);
 
-    // Get voltage
+    // Read voltage until sample is ready
     double voltage;
-    int read_result = ADC_read(adc, &voltage);
+    int read_result = 0;
+    while (read_result == 0) read_result = ADC_read(adc, &voltage);
     if (read_result < 0) {
         fprintf(stderr, "error %d: could not read from ADC \n", read_result);
         return -2;
     }
+    // Convert voltage
     double voltage_undivided = voltage / divider_ratio;
     printf("Read %f V (%f V undivided) \n\n", voltage, voltage_undivided);
 
