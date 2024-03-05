@@ -44,19 +44,6 @@ if (( $PROGRESS < 3 )); then
 	sudo raspi-config nonint do_ssh 0
 
 	echo -n 3 > "$CACHE"
-fi
-
-if (( $PROGRESS < 4 )); then
-	# Install Autopi
-	if [[ ! -f "$AUTOPI_TARBALL" ]]; then
-		echo
-		exit 1
-	fi
-	tar -vxz -f "$AUTOPI_TARBALL"
-	sudo "$AUTOPI_INSTALL"
-	echo "$DEVICE_ID" > "$DEVICE_ID_FILE"
-
-	echo -n 4 > "$CACHE"
 
 	sudo reboot
 fi

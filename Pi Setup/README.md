@@ -20,7 +20,8 @@ Raspberry Pi OS (other) > Raspberry Pi OS Lite (64-bit)
 1. Configure the WiFi connection:
 	- Run `sudo raspi-config`
 	- Navigate to System Options > Wireless LAN
-	- Enter the WiFi connection's SSID and password.
+	- Enter the WiFi connection's SSID and password.  
+	On Mines Campus, use `Mines-IoT`
 
 2. To connect to the Mines network, register the
 **Raspberry Pi**'s **MAC address** at https://netreg.mines.edu/
@@ -28,14 +29,7 @@ Raspberry Pi OS (other) > Raspberry Pi OS Lite (64-bit)
 
 ## Finish setup
 
-1. Put `autopi-install.tgz` in the same directory as `setup.sh`.  
-These files are *not* included in the **Git** repository.
-
-2. Create a file named `autopi-deviceid.txt` and fill it with the id shown at https://autopi.mines.edu/register  
-Ensure that no newlines are present after the id is entered.
-
-3. Run `sudo setup.sh` to complete setup.  
-The current working directory must include the files from the previous step.
+Run `sudo setup.sh` to complete setup.
 
 # `setup.sh`
 
