@@ -41,7 +41,7 @@ int main() {
 	double vel_x = 0.0, vel_y = 0.0, vel_z = 0.0;
 	double time = millis();
 	uint8_t loop = 0;
-	const uint8_t frequency = 100;
+	const uint8_t frequency = 1;
 	double loops_start = time;
 	while (!interrupted) {
 		// Read acceleration and angle
@@ -84,7 +84,9 @@ int main() {
 		vel_y += acc_y_corr * dt / 1000;
 		vel_z += acc_z_corr * dt / 1000;
 		// Print everything
+		loop += 1;
 		if (loop == frequency) {
+			loop = 0;
 			double aggregate_time = time - loops_start;
 			loops_start = time;
 			printf(
@@ -96,11 +98,10 @@ int main() {
 				acc_x, acc_y, acc_z,
 				acc_x_corr, acc_y_corr, acc_z_corr,
 				roll, pitch, yaw,
-				dt, aggregate_time,
+				dt, frequency, aggregate_time,
 				vel_x, vel_y, vel_z
 			);
 		}
-		loop += 1;
 	}
 
     // Deinitialize IMU
