@@ -61,7 +61,7 @@ int main() {
 			yaw = angle[2];
 		double acc_x_corr = (
 			acc_x * cos(pitch * M_PI / 180)
-			- acc_z * sin(pitch * M_PI / 180)
+			+ acc_z * sin(pitch * M_PI / 180)
 		);
 		double acc_y_corr = (
 			acc_y * cos(roll * M_PI / 180)
@@ -86,7 +86,7 @@ int main() {
 			"Acc Corr (m/s^2) %f %f %f | "
 			"RPY (degrees): %f %f %f | "
 			"dt (ms) %f | "
-			"Vel (m/s): %f %f %f",
+			"Vel (m/s): %f %f %f \n",
 			acc_x, acc_y, acc_z,
 			acc_x_corr, acc_y_corr, acc_z_corr,
 			roll, pitch, yaw,

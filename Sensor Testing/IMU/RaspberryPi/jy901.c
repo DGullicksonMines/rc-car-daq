@@ -28,7 +28,7 @@ void IMU_deinit(IMU imu) {
 	(void)(imu); // Suppress unused-parameter
 }
 
-int _IMU_read_vec(IMU imu, uint8_t reg, uint16_t data[3]) {
+int _IMU_read_vec(IMU imu, uint8_t reg, int16_t data[3]) {
 	uint8_t buffer[6];
 	struct i2c_msg msgs[2];
 	// Create write message
@@ -51,23 +51,23 @@ int _IMU_read_vec(IMU imu, uint8_t reg, uint16_t data[3]) {
 
 	// Combine data bytes
 	for (size_t i = 0; i < 3; i += 1)
-		data[i] = ((uint16_t)buffer[2 * i + 1] << 8) | buffer[2 * i];
+		data[i] = ((int16_t)buffer[2 * i + 1] << 8) | buffer[2 * i];
 	
 	return 0;
 }
 
 int IMU_read_acceleration(IMU imu, double acceleration[3]) {
-	uint16_t data[3];
+	int16_t data[3];
 	if (_IMU_read_vec(imu, REG_ACC, data) < 0) return -1;
 	for (size_t i = 0; i < 3; i += 1)
-		acceleration[i] = ((double)data[i] / 32768) * 16.0 * 9.81;
+		acceleration[i] = ((double)data[i] / 32768.0) * 16.0 * 9.81;
 	return 0;
 }
 
 int IMU_read_angle(IMU imu, double angle[3]) {
-	uint16_t data[3];
+	int16_t data[3];
 	if (_IMU_read_vec(imu, REG_ANG, data) < 0) return -1;
 	for (size_t i = 0; i < 3; i += 1)
-		angle[i] = ((double)data[i] / 32768) * 180.0;
+		angle[i] = ((double)data[i] / 32768.0) * 180.0;
 	return 0;
 }
