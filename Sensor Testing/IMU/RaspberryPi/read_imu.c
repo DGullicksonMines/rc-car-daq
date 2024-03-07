@@ -42,6 +42,7 @@ int main() {
 	double time = millis();
 	uint8_t loop = 0;
 	const uint8_t frequency = 100;
+	double loops_start = time;
 	while (!interrupted) {
 		// Read acceleration and angle
 		result = IMU_read_acceleration(imu, acceleration);
@@ -75,27 +76,27 @@ int main() {
 			+ acc_x * sin(pitch * M_PI / 180)
 		);
 		// Calculate time difference
-		if (loop == frequency) {
-			double old_time = time;
-			time = millis();
-			double dt = time - old_time;
-		}
+		double old_time = time;
+		time = millis();
+		double dt = time - old_time;
 		// Integrate velocity
 		vel_x += acc_x_corr * dt / 1000;
 		vel_y += acc_y_corr * dt / 1000;
 		vel_z += acc_z_corr * dt / 1000;
 		// Print everything
 		if (loop == frequency) {
+			double aggregate_time = time - loops_start;
+			loops_start = time;
 			printf(
 				"Acc (m/s^2): %f %f %f | "
 				"Acc Corr (m/s^2) %f %f %f | "
 				"RPY (degrees): %f %f %f | "
-				"dt (ms) %f | "
+				"dt (ms): %f | %d loops (ms): %f | "
 				"Vel (m/s): %f %f %f \n",
 				acc_x, acc_y, acc_z,
 				acc_x_corr, acc_y_corr, acc_z_corr,
 				roll, pitch, yaw,
-				dt,
+				dt, aggregate_time,
 				vel_x, vel_y, vel_z
 			);
 		}
