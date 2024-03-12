@@ -7,6 +7,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
 
 double acc_x = 0, acc_y = 0, acc_z = 0;
 double roll = 0, pitch = 0, yaw = 0;
+double lin_x = 0, lin_y = 0, lin_z = 0;
 
 void setup(void)
 {
@@ -19,7 +20,7 @@ void loop(void)
   sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   //bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
-  //bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
+  bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
   //bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
   bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
   //bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
@@ -33,5 +34,9 @@ void loop(void)
   pitch = orientationData.orientation.z;
   yaw = orientationData.orientation.x;
 
-  Serial.println((String) "Acc (m/s^2): "+acc_x+" "+acc_y+" "+acc_z+" RPY (deg): "+roll+" "+pitch+" "+yaw);
+  lin_x = linearAccelData.acceleration.y;
+  lin_y = linearAccelData.acceleration.x;
+  lin_z = linearAccelData.acceleration.z;
+
+  Serial.println((String) "Acc (m/s^2): "+acc_x+" "+acc_y+" "+acc_z+" RPY (deg): "+roll+" "+pitch+" "+yaw+" Lin (deg): "+lin_x+" "+lin_y+" "+lin_z);
 }

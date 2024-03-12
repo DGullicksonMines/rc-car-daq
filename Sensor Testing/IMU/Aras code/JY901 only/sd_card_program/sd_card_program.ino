@@ -17,13 +17,8 @@ double acc_x = 0;
 double acc_y = 0;
 double acc_z = 0;
 
-double acc_x_init = 0;
-double acc_y_init = 0;
-double acc_z_init = 0;
-
 double acc_x_corr = 0;
 double acc_y_corr = 0;
-double acc_z_corr = 0;
 
 double roll = 0;
 double pitch = 0;
@@ -35,10 +30,8 @@ double dt = 0;
 
 double vel_x = 0;
 double vel_y = 0;
-double vel_z = 0;
 
-double gravity = 0;
-
+const int CS_Pin = 53;
 const int buttonPin = 3;
 int current_button_state = LOW;
 int prev_button_state = LOW;
@@ -48,28 +41,22 @@ void setup()
 {
   Serial.begin(115200);
   JY901.StartIIC();
-  SD.begin(10);
+  SD.begin(CS_Pin);
   pinMode(buttonPin, INPUT);
-
-
-    // store old acc data
-  JY901.GetAcc();
-  acc_x_init = (float)JY901.stcAcc.a[0]/32768*16*9.81;
-  acc_y_init = (float)JY901.stcAcc.a[1]/32768*16*9.81;
-  acc_z_init = (float)JY901.stcAcc.a[2]/32768*16*9.81;
-
-  gravity = sqrt(sq(acc_x_init)+sq(acc_y_init)+sq(acc_z_init));
   
   myFile = SD.open("test.txt", O_RDWR | O_CREAT | O_TRUNC);
-  myFile.println("dt (ms),time (sec),acc_x (m/s^2),acc_y (m/s^2),acc_z (m/s^2),acc_x_corr (m/s^2),acc_y_corr (m/s^2),acc_z_corr (m/s^2),roll (deg),pitch (deg),yaw (deg), vel_x (m/s), vel_y (m/s), vel_z (m/s)");
+  myFile.println("dt (ms),time (sec),acc_x (m/s^2),acc_y (m/s^2),acc_z (m/s^2),acc_x_corr (m/s^2),acc_y_corr (m/s^2),roll (deg),pitch (deg),yaw (deg), vel_x (m/s), vel_y (m/s)");
 } 
 
 void loop() 
 {
-
+  t_2 = t_1;
   // gets RPY and acc data
   JY901.GetAngle();
   JY901.GetAcc();
+  t_1 = double(micros());
+  dt = (t_1 - t_2)/1000;
+  
   roll = (float)JY901.stcAngle.Angle[0]/32768*180;
   pitch = (float)JY901.stcAngle.Angle[1]/32768*180;
   yaw = (float)JY901.stcAngle.Angle[2]/32768*180;
@@ -79,18 +66,14 @@ void loop()
 
   acc_x_corr = acc_x*cos(pitch*3.14/180) - acc_z*sin(pitch*3.14/180);
   acc_y_corr = acc_y*cos(roll*3.14/180) - acc_z*sin(roll*3.14/180);
-  acc_z_corr = -acc_z*cos(roll*3.14/180)*cos(pitch*3.14/180) - acc_y*sin(roll*3.14/180) + acc_x*sin(pitch*3.14/180);
-
-  // calcs dt
-  t_2 = t_1;
-  t_1 = millis();
-  dt = t_1 - t_2;
 
   // integrates velocity
   if (millis()>1000) {
     vel_x = vel_x + (acc_x_corr)*(dt/1000);
+  }
+  
+  if (millis()>1000) {
     vel_y = vel_y + (acc_y_corr)*(dt/1000);
-    vel_z = vel_z + (acc_z_corr-gravity)*(dt/1000);
   }
 
   prev_button_state = current_button_state;
@@ -98,7 +81,7 @@ void loop()
 
   // prints everything to the txt file
   if (recording == 1){
-    myFile.println((String)dt+","+t_1/1000+","+acc_x+","+acc_y+","+acc_z+","+acc_x_corr+","+acc_y_corr+","+acc_z_corr+","+roll+","+pitch+","+yaw+","+vel_x+","+vel_y+","+vel_z);
+    myFile.println((String) dt+","+t_1/1000000+","+acc_x+","+acc_y+","+acc_z+","+acc_x_corr+","+acc_y_corr+","+roll+","+pitch+","+yaw+","+vel_x+","+vel_y);
   }
 
   if (current_button_state == HIGH && prev_button_state == LOW){
