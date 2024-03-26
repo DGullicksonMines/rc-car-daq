@@ -7,8 +7,6 @@
 
 #include "rpm.h"
 
-#define RPM_PIN "17"
-
 bool interrupted = false;
 void sigint_handler(int signum) {
 	(void)(signum); // Suppress unused-parameter
@@ -58,9 +56,17 @@ int main() {
 	pin_interrupts[0].edge = Rising;
 	pin_interrupts[0].interrupt = &interrupt_handler;
 
-	begin_interrupt_polling(pin_interrupts, 1);
+	int result = begin_interrupt_polling(pin_interrupts, 1);
+	if (result < 0) {
+		printf("error %d: beginning polling \n", result);
+		return -1;
+	}
 
 	while (!interrupted);
 
-	end_interrupt_polling();
+	result = end_interrupt_polling()
+	if (result < 0) {
+		printf("error %d: ending polling \n", result);
+		return -2;
+	}
 }
