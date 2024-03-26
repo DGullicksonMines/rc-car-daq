@@ -1,0 +1,18 @@
+# Copyright 2024 by Dawson J. Gullickson
+
+builddir = out
+cflags = -Wall -Wextra -Werror -Werror=vla -Wunreachable-code -pedantic
+lflags = -lm
+
+rule clc
+    command = gcc -MMD -MT $out -MF $out.d $cflags $in $lflags -o $out
+    description = Compile and link $out
+    depfile = $out.d
+    deps = gcc
+build $builddir/read_rpm: clc rpm.c read_rpm.c
+
+rule write
+    command = echo $str > $out
+    description = Writing $out
+build $builddir/.gitignore: write
+    str = "*"
