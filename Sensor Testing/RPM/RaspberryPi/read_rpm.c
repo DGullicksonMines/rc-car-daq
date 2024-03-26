@@ -52,7 +52,7 @@ int main() {
 	signal(SIGINT, sigint_handler);
 
 	PinInterrupt pin_interrupts[1];
-	pin_interrupts[0].pin = 24;
+	pin_interrupts[0].pin = 17;
 	pin_interrupts[0].edge = Rising;
 	pin_interrupts[0].interrupt = &interrupt_handler;
 
@@ -64,7 +64,7 @@ int main() {
 
 	while (!interrupted);
 
-	result = end_interrupt_polling()
+	result = end_interrupt_polling();
 	if (result < 0) {
 		printf("error %d: ending polling \n", result);
 		return -2;
