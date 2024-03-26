@@ -41,8 +41,6 @@ void setup()
   myFile.println("dt (ms),acc_x (m/s^2),acc_y (m/s^2),acc_z (m/s^2),roll (deg),pitch (deg),yaw (deg)");
 } 
 
-
-
 void loop() 
 {
 
@@ -58,8 +56,15 @@ void loop()
 
   // calcs dt
   t_2 = t_1;
-  t_1 = millis();
+  t_1 = double(micros())/1000;
   dt = t_1 - t_2;
+
+  if (acc_z > 0 & pitch > 0){
+    pitch = 180 - pitch;
+  }
+  if (acc_z > 0 & pitch < 0){
+    pitch = -180 - pitch;
+  }
 
   prev_button_state = current_button_state;
   current_button_state = digitalRead(buttonPin);
