@@ -7,7 +7,7 @@
 
 #include "rpm.h"
 
-#define RPM_PIN "24"
+#define RPM_PIN "17"
 
 bool interrupted = false;
 void sigint_handler(int signum) {
