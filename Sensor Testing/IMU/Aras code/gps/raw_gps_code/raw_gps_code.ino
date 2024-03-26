@@ -7,12 +7,15 @@ Adafruit_GPS GPS(&mySerial);
 char c;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   GPS.begin(9600);
+  GPS.sendCommand("$PMTK251,19200*22");
+  mySerial.end();
+  GPS.begin(19200);
 
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
 
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ);
   delay(1000);
 }
 
