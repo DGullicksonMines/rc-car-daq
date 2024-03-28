@@ -15,6 +15,9 @@ int _write_single(
 	const char *const data,
 	const ssize_t len
 ) {
+	// Wait for file to exist
+	while (access(file, F_OK) == -1);
+	// Write data to file
 	const int fd = open(file, O_WRONLY);
 	if (fd < 0) return -1;
 	if (write(fd, data, len) < 0) return -2;
@@ -35,8 +38,10 @@ int _init_pin(const uint8_t pin, const EdgeType edge) {
 	char path[34];
 
 	// Export pin
+	// Ignore errors here in case pin is already exported
+	// An actual error here will cause the next call to return an error
 	snprintf(path, 34, "%s/export", prefix);
-	if (_write_single(path, pin_str, pin_str_len) < 0) return -1;
+	_write_single(path, pin_str, pin_str_len);
 	// Set direction
 	snprintf(path, 34, "%s/gpio%s/direction", prefix, pin_str);
 	if (_write_single(path, "in", 2) < 0) return -2;
