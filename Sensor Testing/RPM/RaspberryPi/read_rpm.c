@@ -2,10 +2,11 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <signal.h>
 #include <time.h>
 
-#include "rpm.h"
+#include "gpio.h"
 
 bool interrupted = false;
 void sigint_handler(int signum) {
@@ -53,10 +54,12 @@ int main() {
 
 	PinInterrupt pin_interrupts[1];
 	pin_interrupts[0].pin = 17;
-	pin_interrupts[0].edge = Rising;
+	pin_interrupts[0].edge = EdgeTypeFalling;
+	pin_interrupts[0].bias = BiasPullUp;
 	pin_interrupts[0].interrupt = &interrupt_handler;
 
-	int result = begin_interrupt_polling(pin_interrupts, 1);
+	Handle handle;
+	int result = begin_interrupt_polling(pin_interrupts, 1, &handle);
 	if (result < 0) {
 		printf("error %d: beginning polling \n", result);
 		return -1;
@@ -64,7 +67,7 @@ int main() {
 
 	while (!interrupted);
 
-	result = end_interrupt_polling();
+	result = end_interrupt_polling(&handle);
 	if (result < 0) {
 		printf("error %d: ending polling \n", result);
 		return -2;
