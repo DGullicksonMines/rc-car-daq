@@ -28,7 +28,7 @@ int begin_interrupt_polling(
 	struct gpio_v2_line_config line_cfg = {
 		.flags = (
 			GPIO_V2_LINE_FLAG_INPUT
-			| GPIO_V2_LINE_FLAG_EDGE_RISING
+			| GPIO_V2_LINE_FLAG_EDGE_FALLING
 			| GPIO_V2_LINE_FLAG_BIAS_PULL_UP
 		),
 		.num_attrs = 0,
