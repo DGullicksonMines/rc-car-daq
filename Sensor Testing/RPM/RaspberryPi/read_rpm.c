@@ -27,7 +27,7 @@ double times[NUM_TIMES];
 bool all_valid = false;
 ssize_t cur_idx = 0;
 
-int interrupt_handler() {
+void interrupt_handler() {
 	// Record time
 	times[cur_idx] = millis(); //TODO figure out accuracy
 	// Print RPM
@@ -45,8 +45,6 @@ int interrupt_handler() {
 	// Increment
 	cur_idx = (cur_idx + 1) % NUM_TIMES;
 	if (cur_idx == 0) all_valid = true;
-
-	return 0;
 }
 
 int main() {

@@ -50,7 +50,7 @@ void *_polling(void *args) {
 		//XXX what if we don't call an interrupt here?
 		for (ssize_t i = 0; i < num_interrupts; i += 1) {
 			if (interrupts[i].pin != event.offset) continue;
-			interrupts[i].interrupt(); //TODO handle return or take void returning interrupt
+			interrupts[i].interrupt();
 			break;
 		}
 	}

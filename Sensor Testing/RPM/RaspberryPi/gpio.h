@@ -27,7 +27,7 @@ typedef struct {
 	uint8_t pin;
 	EdgeType edge;
 	Bias bias;
-	int (*interrupt)(void);
+	void (*interrupt)(void);
 } PinInterrupt;
 
 typedef struct {
