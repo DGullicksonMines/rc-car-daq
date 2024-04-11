@@ -1,9 +1,8 @@
-// Copyright 2024 by Dawson J. Gullickson
-
 #include <stdbool.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <math.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include "gpio.h"
@@ -13,6 +12,8 @@ void sigint_handler(int signum) {
 	(void)(signum); // Suppress unused-parameter
 	interrupted = true;
 }
+
+double target;
 
 double millis() {
 	struct timespec ts;
@@ -46,7 +47,7 @@ void generic_interrupt_handler(
 	const double to_rpm = 1000.0 * 60.0 / 5.0; // interrupts/ms to rpm
 	const double full_rpm = to_rpm * num_valid / (cur_time - first_time);
 	const double single_rpm = to_rpm / (cur_time - prev_time);
-	printf("%d,%ld,%f,%f,%f \n", pin, num_valid, cur_time, single_rpm, full_rpm);
+	printf("%d,%ld,%f,%f,%f,%f \n", pin, num_valid, cur_time, single_rpm, full_rpm, target);
 	// Record time
 	times[*cur_idx] = cur_time;
 	// Increment
@@ -54,62 +55,28 @@ void generic_interrupt_handler(
 	if (*cur_idx == 0) *all_valid = true;
 }
 
-void generic_interrupt_handler_wrapper(
-	const uint8_t pin,
-	const ssize_t interrupt
-) {
-	generic_interrupt_handler(
-		pin,
-		times[interrupt],
-		&all_valid[interrupt],
-		&cur_idx[interrupt]
-	);
+void test_handler_rand() {
+	srand(time(NULL));
+	int i = 0;
+	double time;
+	struct timespec sleep_time;
+	while (!interrupted) {
+		if (i == 0) {
+			target = 10.0 + 2000.0 * ((double)rand() / RAND_MAX);
+			// s/interrupt = min/rot * s/min * interrupts/rot
+			time = (60.0 / 5.0) / target;
+			sleep_time.tv_sec = (time_t)time;
+			sleep_time.tv_nsec = (long)(fmod(time, 1.0) * 1e9);
+		}
+		i = (i + 1) % 100;
+		generic_interrupt_handler(0, times[0], &all_valid[0], &cur_idx[0]);
+		nanosleep(&sleep_time, NULL);
+	}
 }
-
-#define interrupt_handler(i) void interrupt_handler_##i() { \
-	generic_interrupt_handler_wrapper(pins[i], i); \
-}
-interrupt_handler(0)
-interrupt_handler(1)
-interrupt_handler(2)
-interrupt_handler(3)
-void (* const interrupt_handlers[NUM_INTERRUPTS])(void) = {
-	&interrupt_handler_0,
-	&interrupt_handler_1,
-	&interrupt_handler_2,
-	&interrupt_handler_3
-};
 
 int main() {
 	signal(SIGINT, sigint_handler);
 
-	// Setup pin interrupts
-	PinInterrupt pin_interrupts[NUM_INTERRUPTS];
-	for (ssize_t i = 0; i < NUM_INTERRUPTS; i += 1) {
-		pin_interrupts[i].pin = pins[i];
-		pin_interrupts[i].edge = EdgeTypeFalling;
-		pin_interrupts[i].bias = BiasPullUp;
-		pin_interrupts[i].interrupt = interrupt_handlers[i];
-	}
-
-	// Print header
-	printf("Pin,Valid Samples,Time (ms),Single Sample RPM,RPM \n");
-
-	// Begin interrupt polling
-	Handle handle;
-	int result = begin_interrupt_polling(pin_interrupts, 1, &handle);
-	if (result < 0) {
-		printf("error %d: beginning polling \n", result);
-		return -1;
-	}
-
-	// Idle until interrupted
-	while (!interrupted);
-
-	// End interrupt polling
-	result = end_interrupt_polling(&handle);
-	if (result < 0) {
-		printf("error %d: ending polling \n", result);
-		return -2;
-	}
+	printf("Pin,Valid Samples,Time (ms),Single Sample RPM,RPM,Target RPM \n");
+	test_handler_rand();
 }
