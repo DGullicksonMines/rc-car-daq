@@ -35,21 +35,20 @@ void generic_interrupt_handler(
 	bool *const all_valid,
 	ssize_t *const cur_idx
 ) {
-	// Record time
-	//TODO could record time at end so that num_valid can equal NUM_TIMES instead of NUM_TIMES - 1
-	times[*cur_idx] = millis(); //TODO figure out accuracy
+	// Get current time
+	const double cur_time = millis(); //TODO figure out accuracy
 	// Print RPM
-	const ssize_t first_idx = (*all_valid) ? (*cur_idx + 1) % NUM_TIMES : 0;
+	const ssize_t first_idx = (*all_valid) ? *cur_idx : 0;
 	const ssize_t prev_idx = (*cur_idx - 1 + NUM_TIMES) % NUM_TIMES;
 	const double first_time = times[first_idx];
 	const double prev_time = times[prev_idx];
-	const double cur_time = times[*cur_idx];
-	const ssize_t num_valid = (*all_valid) ? NUM_TIMES - 1 : *cur_idx;
+	const ssize_t num_valid = (*all_valid) ? NUM_TIMES : *cur_idx;
 	const double to_rpm = 1000.0 * 60.0 / 5.0; // interrupts/ms to rpm
 	const double full_rpm = to_rpm * num_valid / (cur_time - first_time);
 	const double single_rpm = to_rpm / (cur_time - prev_time);
-	printf("%d RPM: %f (%ld samples) \n", pin, full_rpm, num_valid);
-	printf("%d RPM: %f (1 sample) \n", pin, single_rpm);
+	printf("%d,%ld,%f,%f \n", pin, num_valid, single_rpm, full_rpm);
+	// Record time
+	times[*cur_idx] = cur_time;
 	// Increment
 	*cur_idx = (*cur_idx + 1) % NUM_TIMES;
 	if (*cur_idx == 0) *all_valid = true;
