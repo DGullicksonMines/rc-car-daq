@@ -22,39 +22,74 @@ double millis() {
 	return ms;
 }
 
+#define NUM_INTERRUPTS 4
 #define NUM_TIMES 64
-double times[NUM_TIMES];
-bool all_valid = false;
-ssize_t cur_idx = 0;
+const uint8_t pins[NUM_INTERRUPTS] = {17, 27, 22, 10};
+double times[NUM_INTERRUPTS][NUM_TIMES];
+bool all_valid[NUM_INTERRUPTS] = {0};
+ssize_t cur_idx[NUM_INTERRUPTS] = {0};
 
-void interrupt_handler() {
+void generic_interrupt_handler(
+	const uint8_t pin,
+	double *const times,
+	bool *const all_valid,
+	ssize_t *const cur_idx
+) {
 	// Record time
-	times[cur_idx] = millis(); //TODO figure out accuracy
+	times[*cur_idx] = millis(); //TODO figure out accuracy
 	// Print RPM
-	const ssize_t first_idx = (all_valid) ? (cur_idx + 1) % NUM_TIMES : 0;
-	const ssize_t prev_idx = (cur_idx - 1 + NUM_TIMES) % NUM_TIMES;
+	const ssize_t first_idx = (*all_valid) ? (*cur_idx + 1) % NUM_TIMES : 0;
+	const ssize_t prev_idx = (*cur_idx - 1 + NUM_TIMES) % NUM_TIMES;
 	const double first_time = times[first_idx];
 	const double prev_time = times[prev_idx];
-	const double cur_time = times[cur_idx];
-	const ssize_t num_valid = (all_valid) ? NUM_TIMES : cur_idx;
+	const double cur_time = times[*cur_idx];
+	const ssize_t num_valid = (*all_valid) ? NUM_TIMES : *cur_idx;
 	const double to_rpm = 1000.0 * 60.0 / 5.0; // magnets/ms to rpm
 	const double full_rpm = to_rpm * num_valid / (cur_time - first_time);
 	const double single_rpm = to_rpm / (cur_time - prev_time);
-	printf("RPM: %f (%ld samples) \n", full_rpm, num_valid);
-	printf("RPM: %f (1 sample) \n", single_rpm);
+	printf("%d RPM: %f (%ld samples) \n", pin, full_rpm, num_valid);
+	printf("%d RPM: %f (1 sample) \n", pin, single_rpm);
 	// Increment
-	cur_idx = (cur_idx + 1) % NUM_TIMES;
-	if (cur_idx == 0) all_valid = true;
+	*cur_idx = (*cur_idx + 1) % NUM_TIMES;
+	if (*cur_idx == 0) *all_valid = true;
 }
+
+void generic_interrupt_handler_wrapper(
+	const uint8_t pin,
+	const ssize_t interrupt
+) {
+	generic_interrupt_handler(
+		pin,
+		times[interrupt],
+		&all_valid[interrupt],
+		&cur_idx[interrupt]
+	);
+}
+
+#define interrupt_handler(i) void interrupt_handler_##i() { \
+	generic_interrupt_handler_wrapper(pins[i], i); \
+}
+interrupt_handler(0)
+interrupt_handler(1)
+interrupt_handler(2)
+interrupt_handler(3)
+void (* const interrupt_handlers[NUM_INTERRUPTS])(void) = {
+	&interrupt_handler_0,
+	&interrupt_handler_1,
+	&interrupt_handler_2,
+	&interrupt_handler_3
+};
 
 int main() {
 	signal(SIGINT, sigint_handler);
 
-	PinInterrupt pin_interrupts[1];
-	pin_interrupts[0].pin = 17;
-	pin_interrupts[0].edge = EdgeTypeFalling;
-	pin_interrupts[0].bias = BiasPullUp;
-	pin_interrupts[0].interrupt = &interrupt_handler;
+	PinInterrupt pin_interrupts[NUM_INTERRUPTS];
+	for (ssize_t i = 0; i < NUM_INTERRUPTS; i += 1) {
+		pin_interrupts[i].pin = pins[i];
+		pin_interrupts[i].edge = EdgeTypeFalling;
+		pin_interrupts[i].bias = BiasPullUp;
+		pin_interrupts[i].interrupt = interrupt_handlers[i];
+	}
 
 	Handle handle;
 	int result = begin_interrupt_polling(pin_interrupts, 1, &handle);
