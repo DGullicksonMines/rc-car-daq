@@ -19,7 +19,7 @@
 #define GPIO_CHIP "/dev/gpiochip0"
 
 typedef struct {
-	PinInterrupt *interrupts;
+	const PinInterrupt *interrupts;
 	ssize_t num_interrupts;
 	struct pollfd poll_fd;
 	pthread_mutex_t *canceled;
@@ -29,8 +29,8 @@ typedef struct {
 void *_polling(void *args) {
 	// Unpackage args
 	_ThreadArgs *thread_args = (_ThreadArgs *)args;
-	PinInterrupt *interrupts = thread_args->interrupts;
-	ssize_t num_interrupts = thread_args->num_interrupts;
+	const PinInterrupt *const interrupts = thread_args->interrupts;
+	const ssize_t num_interrupts = thread_args->num_interrupts;
 	struct pollfd poll_fd = thread_args->poll_fd;
 	pthread_mutex_t *canceled = thread_args->canceled;
 	thread_args->received = true;
@@ -38,9 +38,9 @@ void *_polling(void *args) {
 	// Loop until cancelled
 	while (pthread_mutex_trylock(canceled) != 0) {
 		// Poll for interrupt
-		const int poll_result = poll(&poll_fd, 1, -1);
+		const int poll_result = poll(&poll_fd, 1, 1000);
 		if (poll_result < 0) return (void *)-1; // Poll error
-		if (poll_result == 0) return (void *)-2; // Unreachable; timed out
+		if (poll_result == 0) continue; // Timed out
 		if ((poll_fd.revents & POLLIN) == 0) return (void *)-3; // No POLLPRI event
 		// Read line event
 		struct gpio_v2_line_event event;
@@ -60,12 +60,12 @@ void *_polling(void *args) {
 }
 
 int begin_interrupt_polling(
-	PinInterrupt *const interrupts,
+	const PinInterrupt *const interrupts,
 	const ssize_t num_interrupts,
-	Handle *handle
+	Handle *const handle
 ) {
 	// Open GPIO Chip
-	int chip_fd = open(GPIO_CHIP, O_RDONLY);
+	const int chip_fd = open(GPIO_CHIP, O_RDONLY);
 	if (chip_fd < 0) return -1;
 	handle->chip_fd = chip_fd;
 
@@ -76,7 +76,7 @@ int begin_interrupt_polling(
 		.padding = {0},
 	};
 	// Create line configurations
-	uint32_t attr_num = 0;
+	if (num_interrupts > GPIO_V2_LINE_NUM_ATTRS_MAX) return -2;
 	for (ssize_t i = 0; i < num_interrupts; i += 1) {
 		uint64_t flags = 0;
 		// Set edge
@@ -106,8 +106,8 @@ int begin_interrupt_polling(
 			.attr = attr,
 			.mask = (uint64_t)1 << i,
 		};
-		line_cfg.attrs[attr_num] = attribute;
-		attr_num += 1;
+		line_cfg.attrs[line_cfg.num_attrs] = attribute;
+		line_cfg.num_attrs += 1;
 	}
 	// Open GPIO Lines
 	struct gpio_v2_line_request line_req = {
@@ -117,17 +117,20 @@ int begin_interrupt_polling(
 		.event_buffer_size = 0, // Let Kernel choose
 		.padding = {0},
 	};
+	if (num_interrupts > GPIO_V2_LINES_MAX) return -3;
 	for (ssize_t i = 0; i < num_interrupts; i += 1)
 		line_req.offsets[i] = (uint32_t)interrupts[i].pin;
-	if (ioctl(chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_req) < 0) return -2;
+	if (ioctl(chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_req) < 0) return -4;
 
 	// Initialize polling
-	struct pollfd poll_fd = {
+	const struct pollfd poll_fd = {
 		.fd = line_req.fd,
 		.events = POLLIN,
 	};
 
 	// Create polling thread
+	if (pthread_mutex_init(&handle->canceled, NULL) < 0) return -5;
+	if (pthread_mutex_lock(&handle->canceled) < 0) return -6;
 	_ThreadArgs args = {
 		.interrupts = interrupts,
 		.num_interrupts = num_interrupts,
@@ -136,21 +139,24 @@ int begin_interrupt_polling(
 		.received = false,
 	};
 	int res = pthread_create(&handle->thread, NULL, _polling, (void *)&args);
-	if (res < 0) return -3;
+	if (res < 0) return -7;
 	// Wait for arguments to be received
 	while (!args.received);
 
 	return 0;
 }
 
-int end_interrupt_polling(Handle *handle) {
+int end_interrupt_polling(Handle *const handle) {
 	// Cancel thread
 	if (pthread_mutex_unlock(&handle->canceled) < 0) return -1;
 	// Join thread
-	int ret;
+	void *ret;
 	if (pthread_join(handle->thread, (void **)&ret) < 0) return -2;
+	if ((ssize_t)ret < 0) return -3;
+	// Destroy mutex
+	if (pthread_mutex_destroy(&handle->canceled) < 0) return -4;
 	// Close file
-	if (close(handle->chip_fd) < 0) return -3;
+	if (close(handle->chip_fd) < 0) return -5;
 
 	return 0;
 }

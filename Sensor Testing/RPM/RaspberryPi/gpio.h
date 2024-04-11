@@ -37,11 +37,11 @@ typedef struct {
 } Handle;
 
 int begin_interrupt_polling(
-	PinInterrupt *const interrupts,
+	const PinInterrupt *const interrupts,
 	const ssize_t num_interrupts,
-	Handle *handle
+	Handle *const handle
 );
 
-int end_interrupt_polling(Handle *handle);
+int end_interrupt_polling(Handle *const handle);
 
 #endif
