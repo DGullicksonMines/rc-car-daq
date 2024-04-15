@@ -29,7 +29,7 @@ fi
 
 if (( $PROGRESS < 2 )); then
 	# Install necessary packages
-	sudo apt install git gcc i2c-tools pip
+	sudo apt install git gcc i2c-tools gpsd libgps-dev
 	sudo apt clean
 
 	echo -n 2 > "$CACHE"
