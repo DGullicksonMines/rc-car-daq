@@ -1,3 +1,5 @@
+// Copyright 2024 by Dawson J. Gullickson
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <math.h>

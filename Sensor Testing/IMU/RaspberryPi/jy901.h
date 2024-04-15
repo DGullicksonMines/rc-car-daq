@@ -1,7 +1,9 @@
 // Copyright 2024 by Dawson J. Gullickson
 
-#ifndef jy901_H
-#define jy901_H
+// Simple Library for the JY901 9-Axis IMU
+
+#ifndef JY901_H
+#define JY901_H
 
 #include <stdint.h>
 

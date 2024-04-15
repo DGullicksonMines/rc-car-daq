@@ -1,5 +1,7 @@
 // Copyright 2024 by Dawson J. Gullickson
 
+// Simple Library for the MCP3424 ADC
+
 #ifndef MCP3424_H
 #define MCP3424_H
 
