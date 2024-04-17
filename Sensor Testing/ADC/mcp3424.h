@@ -54,22 +54,32 @@ typedef struct {
     Config config;
 } ADC;
 
+/// @brief Initializes an ADC connection
+/// @param adc Uninitialized `ADC` struct
+/// @param i2c_bus Path to the I2C bus to use
+/// @param address I2C Address of ADC
+/// @return 0 on success
 int ADC_init(ADC *adc, const char *i2c_bus, uint8_t address);
 
-void ADC_deinit(ADC adc);
+/// @brief Deinitializes an ADC connection
+/// @param adc Initialized `ADC` struct
+/// @return 0 on success
+int ADC_deinit(ADC adc);
 
 BitMode ADC_bit_mode(ADC adc);
 
+/// @brief Configures an ADC using `adc.config`
+/// @param adc Initialized `ADC` struct
+/// @return 0 on success
 int ADC_configure(ADC adc);
 
 /// @brief Reads a voltage from an ADC into `value`
 /// @param adc An ADC struct
 /// @param value Pointer voltage is read into
-/// @return
-/// -2: Failed to set ADC as I2C slave
-/// -1: Failed to read from the ADC
-///  0: Successfully read an old value from the ADC
-///  1: Successfully read a new value from the ADC
+/// @return -2: Failed to set ADC as I2C slave,
+/// @return -1: Failed to read from the ADC,
+/// @return 0: Successfully read an old value from the ADC,
+/// @return 1: Successfully read a new value from the ADC
 int ADC_read(ADC adc, double *value);
 
 #endif

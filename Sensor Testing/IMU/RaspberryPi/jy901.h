@@ -12,12 +12,24 @@ typedef struct {
 	uint8_t address;
 } IMU;
 
+/// @brief Initializes an IMU connection
+/// @param adc Uninitialized `IMU` struct
+/// @return 0 on success
 int IMU_init(IMU *imu, const char *i2c_bus);
 
-void IMU_deinit(IMU imu);
+/// @brief Deinitializes an IMU connection
+/// @param adc Initialized `IMU` struct
+/// @return 0 on success
+int IMU_deinit(IMU imu);
 
+/// @brief Reads acceleration from an IMU
+/// @param adc Initialized `IMU` struct
+/// @return 0 on success
 int IMU_read_acceleration(IMU imu, double acceleration[3]);
 
+/// @brief Reads angle from an IMU
+/// @param adc Initialized `IMU` struct
+/// @return 0 on success
 int IMU_read_angle(IMU imu, double angle[3]);
 
 #endif

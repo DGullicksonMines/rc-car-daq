@@ -3,10 +3,10 @@
 #include "mcp3424.h"
 
 #include <stdint.h>
-#include <fcntl.h>
-#include <linux/i2c-dev.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
+#include <fcntl.h> // open(), O_RDWR
+#include <linux/i2c-dev.h> // I2C_SLAVE
+#include <sys/ioctl.h> // ioctl()
+#include <unistd.h> // write(), read(), close()
 
 const double FULL_SCALE_RANGE = 2.048;
 
@@ -54,8 +54,8 @@ int ADC_init(ADC *adc, const char *i2c_bus, uint8_t address) {
     return 0;
 }
 
-void ADC_deinit(ADC adc) {
-    close(adc.bus);
+int ADC_deinit(ADC adc) {
+    return close(adc.bus);
 }
 
 BitMode ADC_bit_mode(ADC adc) {

@@ -5,10 +5,9 @@
 #ifndef gpio_H
 #define gpio_H
 
+#include <stddef.h> // size_t
 #include <stdint.h>
-#include <unistd.h>
-#include <poll.h>
-#include <pthread.h>
+#include <pthread.h> // pthread_mutex_t, pthread_t
 
 typedef enum {
 	EdgeTypeNone,
@@ -38,7 +37,7 @@ typedef struct {
 
 int begin_interrupt_polling(
 	const PinInterrupt *const interrupts,
-	const ssize_t num_interrupts,
+	const size_t num_interrupts,
 	Handle *const handle
 );
 
