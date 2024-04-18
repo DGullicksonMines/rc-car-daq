@@ -14,7 +14,9 @@
 #include <sys/ioctl.h> // ioctl()
 #include <unistd.h> // read(), close()
 
-#define GPIO_CHIP "/dev/gpiochip0"
+//NOTE The RPi4B uses gpiochip0 and the RPi5 uses gpiochip5
+//FIXME This fact shouldn't be hidden here
+#define GPIO_CHIP "/dev/gpiochip4"
 
 typedef struct {
 	const PinInterrupt *interrupts;
@@ -68,15 +70,16 @@ int begin_interrupt_polling(
 	handle->chip_fd = chip_fd;
 
 	// Create main configuration
+	uint64_t default_flags = GPIO_V2_LINE_FLAG_INPUT;
 	struct gpio_v2_line_config line_cfg = {
-		.flags = GPIO_V2_LINE_FLAG_INPUT,
+		.flags = default_flags,
 		.num_attrs = 0,
 		.padding = {0},
 	};
 	// Create line configurations
 	if (num_interrupts > GPIO_V2_LINE_NUM_ATTRS_MAX) return -2;
 	for (size_t i = 0; i < num_interrupts; i += 1) {
-		uint64_t flags = 0;
+		uint64_t flags = default_flags;
 		// Set edge
 		switch (interrupts[i].edge) {
 		case EdgeTypeNone: break;
@@ -93,7 +96,7 @@ int begin_interrupt_polling(
 		case BiasPullUp: flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_UP; break;
 		case BiasPullDown: flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN; break;
 		}
-		if (flags == 0) continue;
+		if (flags == default_flags) continue;
 		// Add attribute
 		struct gpio_v2_line_attribute attr = {
 			.id = GPIO_V2_LINE_ATTR_ID_FLAGS,
