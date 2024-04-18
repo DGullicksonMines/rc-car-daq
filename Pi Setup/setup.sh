@@ -7,9 +7,9 @@ set -e # Exit on errors
 # Read cache
 CACHE="setup.cache"
 if [[ -f CACHE ]]; then
-	PROGRESS=0
-else
 	PROGRESS=$(cat "$CACHE")
+else
+	PROGRESS=0
 fi
 
 if (( $PROGRESS < 1 )); then
