@@ -6,7 +6,7 @@ set -e # Exit on errors
 
 # Read cache
 CACHE="setup.cache"
-if [[ -f CACHE ]]; then
+if [[ -f $CACHE ]]; then
 	PROGRESS=$(cat "$CACHE")
 else
 	PROGRESS=0
@@ -15,7 +15,7 @@ fi
 if (( $PROGRESS < 1 )); then
 	# Update packages
 	sudo apt update
-	sudo apt full-upgrade
+	sudo apt -y full-upgrade
 	sudo apt clean
 
 	echo -n 1 > "$CACHE"
@@ -23,7 +23,7 @@ fi
 
 if (( $PROGRESS < 2 )); then
 	# Install necessary packages
-	sudo apt install git gcc i2c-tools gpsd libgps-dev
+	sudo apt -y install git gcc i2c-tools gpsd libgps-dev
 	sudo apt clean
 
 	echo -n 2 > "$CACHE"
