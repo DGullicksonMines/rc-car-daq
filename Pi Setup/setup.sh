@@ -31,11 +31,12 @@ fi
 
 if (( $PROGRESS < 3 )); then
 	#NOTE 0 corresponds to *enabling* these interfaces
-	# Enable I2C
-	sudo raspi-config nonint do_spi 0
-	sudo raspi-config nonint do_i2c 0
 	# Enable SSH
 	sudo raspi-config nonint do_ssh 0
+	# Enable Serial
+	sudo raspi-config nonint do_serial_hw 0
+	# Enable I2C
+	sudo raspi-config nonint do_i2c 0
 
 	echo -n 3 > "$CACHE"
 
