@@ -2,20 +2,14 @@
 
 # Copyright 2024 by Dawson J. Gullickson
 
-AUTOPI_TARBALL="autopi-install.tgz"
-AUTOPI_INSTALL="autopi-install/install"
-
-DEVICE_ID=$(cat "autopi-deviceid.txt")
-DEVICE_ID_FILE="/boot/CSM_device_id.txt"
-
 set -e # Exit on errors
 
 # Read cache
 CACHE="setup.cache"
 if [[ -f CACHE ]]; then
-	PROGRESS=0
-else
 	PROGRESS=$(cat "$CACHE")
+else
+	PROGRESS=0
 fi
 
 if (( $PROGRESS < 1 )); then
