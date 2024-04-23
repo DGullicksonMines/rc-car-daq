@@ -82,4 +82,13 @@ int ADC_configure(ADC adc);
 /// @return 1: Successfully read a new value from the ADC
 int ADC_read(ADC adc, double *value);
 
+/// @brief Reads a voltage from an ADC into `value`
+/// @param adc An ADC struct
+/// @param value Pointer voltage is read into
+/// @return -2: Failed to set ADC as I2C slave,
+/// @return -1: Failed to read from the ADC,
+/// @return 0: New value is not ready,
+/// @return 1: New value is ready
+int ADC_is_ready(ADC adc);
+
 #endif
