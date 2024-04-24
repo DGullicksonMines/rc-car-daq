@@ -58,7 +58,7 @@ void *_polling(void *args) {
 		printf("reading value \n");
 		struct gpio_v2_line_values values = {
 			.bits = 0,
-			.mask = 1 << event.offset,
+			.mask = 0,
 		};
 		int res = ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values);
 		printf("res: %d, err: %d \n", res, errno);
