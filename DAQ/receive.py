@@ -38,7 +38,7 @@ class Entry:
 		writer.write("time,cell0,cell1,cell2,cell3,cell4,cell5,")
 		writer.write("acc_x,acc_y,acc_z,roll,pitch,yaw,")
 		writer.write("latitude,longitude,satellites,speed,")
-		writer.write("rpm_bl,rpm_br,rpm_fl,rpm_fr,") #TODO order
+		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,") #TODO order
 		writer.write("steering \n")
 
 	def write(self, writer: t.TextIO):
