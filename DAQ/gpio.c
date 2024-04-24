@@ -5,6 +5,7 @@
 #include "gpio.h"
 
 #include <stdio.h> //TODO remove with printf()s
+#include <errno.h>
 
 #include <stddef.h> // size_t
 #include <stdbool.h>
@@ -58,7 +59,7 @@ void *_polling(void *args) {
 		struct gpio_v2_line_values values;
 		values.mask = 1 << event.offset;
 		int res = ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values);
-		printf("res: %d \n", res);
+		printf("res: %d, err: %d \n", res, errno);
 		if (res < 0)
 			return (void *)-4;
 		bool active = (values.bits & (1 << event.offset)) > 0;
