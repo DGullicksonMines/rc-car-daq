@@ -29,7 +29,7 @@ int16_t read_int(const char *prompt) {
     return val;
 }
 
-int probe_loop(ADC adc, double divider_ratio) {
+int probe_loop(ADC adc) {
     // Prompt channel
     uint16_t channel = read_int("Channel: ");
     if (channel < 1 || 4 < channel) {
@@ -49,31 +49,12 @@ int probe_loop(ADC adc, double divider_ratio) {
         return -2;
     }
     // Convert voltage
-    double voltage_undivided = voltage / divider_ratio;
-    printf("Read %f V (%f V undivided) \n\n", voltage, voltage_undivided);
+    printf("Read %f V \n\n", voltage);
 
     return 0;
 }
 
 int main() {
-    // Get voltage divider ratio
-    double divider_ratio;
-    int16_t r1 = read_int("Resistor 1 Value (int): ");
-    if (r1 < 0) {
-        fprintf(stderr, "error %d: could not get resistor 1 value \n", r1);
-        return -1;
-    }
-    if (r1 != 0) {
-        int16_t r2 = read_int("Resistor 2 Value (int): ");
-        if (r1 < 0) {
-            fprintf(stderr, "error %d: could not get resistor 2 value \n", r1);
-            return -1;
-        }
-        divider_ratio = (double)r2 / ((double)r1 + r2);
-    } else {
-        divider_ratio = 1;
-    }
-
     int16_t address = read_int("ADC Address: ");
     if (address < 0) {
         fprintf(stderr, "error %d: could not get address \n", address);
@@ -97,7 +78,7 @@ int main() {
 
     // Loop until no channel entered
     int loop_result;
-    while ((loop_result = probe_loop(adc, divider_ratio)) >= 0);
+    while ((loop_result = probe_loop(adc)) >= 0);
     if (loop_result != -1) return -3;
 
     // Deinitialize ADC

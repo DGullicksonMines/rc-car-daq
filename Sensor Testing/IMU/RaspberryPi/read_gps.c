@@ -1,6 +1,11 @@
 // Copyright 2024 by Dawson J. Gullickson
 
-//NOTE Start GPSD using `gpsd /dev/serial0`
+//NOTE Start GPSD using
+// ```
+// sudo systemctl stop gpsd.socket
+// sudo systemctl disable gpsd.socket
+// sudo gpsd /dev/ttyAMA0 -F /var/run/gpsd.sock
+// ```
 
 #include <stdbool.h>
 #include <stdio.h>
