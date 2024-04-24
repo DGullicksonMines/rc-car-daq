@@ -468,6 +468,6 @@ void sleep_remainder(
 		req.tv_nsec -= 1e9;
 	}
 	printf("waiting %ld, target %ld \n", req.tv_sec, duration.tv_sec);
-	if (req.tv_sec < 0) return
+	if (req.tv_sec < 0) return;
 	nanosleep(&req, NULL);
 }
