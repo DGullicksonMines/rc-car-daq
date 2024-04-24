@@ -97,7 +97,7 @@ int main() {
 
 	// Begin interrupt polling
 	Handle handle;
-	int result = begin_interrupt_polling(pin_interrupts, 1, &handle);
+	int result = begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle);
 	if (result < 0) {
 		printf("error %d: beginning polling \n", result);
 		return -1;
