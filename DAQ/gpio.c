@@ -4,6 +4,8 @@
 
 #include "gpio.h"
 
+#include <stdio.h> //TODO remove with printf()s
+
 #include <stddef.h> // size_t
 #include <stdbool.h>
 #include <stdint.h>
@@ -71,6 +73,7 @@ int begin_interrupt_polling(
 	const size_t num_interrupts,
 	Handle *const handle
 ) {
+	printf("opening \n");
 	// Open GPIO Chip
 	const int chip_fd = open(GPIO_CHIP, O_RDONLY);
 	if (chip_fd < 0) return -1;
@@ -86,6 +89,7 @@ int begin_interrupt_polling(
 	// Create line configurations
 	if (num_interrupts > GPIO_V2_LINE_NUM_ATTRS_MAX) return -2;
 	for (size_t i = 0; i < num_interrupts; i += 1) {
+		printf("configuring interrupt %ld \n", i);
 		uint64_t flags = default_flags;
 		// Set edge
 		switch (interrupts[i].edge) {
@@ -104,6 +108,7 @@ int begin_interrupt_polling(
 		case BiasPullDown: flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN; break;
 		}
 		if (flags == default_flags) continue;
+		printf("custom configuration \n");
 		// Add attribute
 		struct gpio_v2_line_attribute attr = {
 			.id = GPIO_V2_LINE_ATTR_ID_FLAGS,
@@ -128,6 +133,7 @@ int begin_interrupt_polling(
 	if (num_interrupts > GPIO_V2_LINES_MAX) return -3;
 	for (size_t i = 0; i < num_interrupts; i += 1)
 		line_req.offsets[i] = (uint32_t)interrupts[i].pin;
+	printf("opening lines \n");
 	if (ioctl(chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_req) < 0) return -4;
 
 	// Initialize polling

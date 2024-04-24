@@ -287,6 +287,7 @@ int run() {
 	PinInterrupt pin_interrupts[NUM_INTERRUPTS];
 	// Setup rpm interrupts
 	for (size_t i = 0; i < RPM_INTERRUPTS; i += 1) {
+		printf("setting interrupt %ld for pin %d \n", i, rpm_pins[i]);
 		pin_interrupts[i].pin = rpm_pins[i];
 		pin_interrupts[i].edge = EdgeTypeFalling;
 		pin_interrupts[i].bias = BiasPullUp;
@@ -294,6 +295,7 @@ int run() {
 	}
 	// Setup pwm interrupts
 	for (size_t i = RPM_INTERRUPTS; i < NUM_INTERRUPTS; i += 1) {
+		printf("setting interrupt %ld for pin %d \n", i, rpm_pins[i]);
 		pin_interrupts[i].pin = pwm_pins[i];
 		pin_interrupts[i].edge = EdgeTypeBoth;
 		pin_interrupts[i].bias = BiasNone;
@@ -319,6 +321,7 @@ int run() {
 	// --= Main loop =-- //
 	uint64_t i = 0;
 	struct timespec last_time = now();
+	//TODO we should occasionally check if the polling thread has had any errors
 	while (!interrupted) {
 		// Sample ADC
 		if (i % ADC_interval == 0) {
