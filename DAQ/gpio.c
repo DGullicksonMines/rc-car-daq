@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <fcntl.h> // open(), O_RDONLY
-#include <linux/gpio.h> // gpio_v2_line_event, gpio_v2_line_config, gpio_v2_line_attribute, gpio_v2_line_config_attribute, gpio_v2_line_request, GPIO_V2_LINE_FLAG_INPUT, GPIO_V2_LINE_NUM_ATTRS_MAX, GPIO_V2_LINE_FLAG_EDGE_FALLING, GPIO_V2_LINE_FLAG_EDGE_RISING, GPIO_V2_LINE_FLAG_BIAS_PULL_UP, GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN, GPIO_V2_LINE_ATTR_ID_FLAGS, GPIO_V2_LINES_MAX, GPIO_V2_GET_LINE_IOCTL
+#include <linux/gpio.h> // gpio_v2_line_event, gpio_v2_line_config, gpio_v2_line_attribute, gpio_v2_line_config_attribute, gpio_v2_line_request, GPIO_V2_LINE_FLAG_INPUT, GPIO_V2_LINE_NUM_ATTRS_MAX, GPIO_V2_LINE_FLAG_EDGE_FALLING, GPIO_V2_LINE_FLAG_EDGE_RISING, GPIO_V2_LINE_FLAG_BIAS_PULL_UP, GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN, GPIO_V2_LINE_ATTR_ID_FLAGS, GPIO_V2_LINES_MAX, GPIO_V2_GET_LINE_IOCTL, GPIO_V2_LINE_GET_VALUES_IOCTL
 #include <poll.h> // pollfd, poll(), POLL_IN
 #include <pthread.h> // pthread_mutex_t, pthread_t, pthread_mutex_init(), pthread_mutex_destroy(), pthread_mutex_lock(), pthread_mutex_trylock(), pthread_mutex_unlock(), pthread_create(), pthread_join()
 #include <sys/ioctl.h> // ioctl()
@@ -56,8 +56,10 @@ void *_polling(void *args) {
 		// Read line value
 		//XXX will this slow us down significantly?
 		printf("reading value \n");
-		struct gpio_v2_line_values values;
-		values.mask = 1 << event.offset;
+		struct gpio_v2_line_values values = {
+			.bits = 0,
+			.mask = 1 << event.offset,
+		};
 		int res = ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values);
 		printf("res: %d, err: %d \n", res, errno);
 		if (res < 0)
