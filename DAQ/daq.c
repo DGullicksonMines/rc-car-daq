@@ -457,8 +457,8 @@ void sleep_remainder(
 	struct timespec now
 ) {
 	struct timespec req = {
-		.tv_sec = duration.tv_sec + (now.tv_sec - from.tv_sec),
-		.tv_nsec = duration.tv_nsec + (now.tv_nsec - from.tv_nsec)
+		.tv_sec = duration.tv_sec - (now.tv_sec - from.tv_sec),
+		.tv_nsec = duration.tv_nsec - (now.tv_nsec - from.tv_nsec)
 	};
 	if (req.tv_nsec < 0) {
 		req.tv_sec -= 1;
