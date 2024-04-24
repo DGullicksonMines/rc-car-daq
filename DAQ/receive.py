@@ -4,7 +4,7 @@ import struct
 import subprocess as sp
 
 # SSH_CMD = ["ssh", "rcCar@rcCar" "./daq"]
-SSH_CMD = ['type', 'DAQ\\data.bin']
+SSH_CMD = ['type', 'data.bin']
 CSV_FILE = "TODO.csv" #TODO
 
 @dc.dataclass
@@ -18,6 +18,7 @@ class Entry:
 	speed: float
 	rpms: tuple[float, float, float, float] # bl, br, fl, fr
 	steering: float
+	throttle: float
 
 	@staticmethod
 	def new() -> "Entry":
@@ -30,6 +31,7 @@ class Entry:
 			0,
 			0.0,
 			(0.0, 0.0, 0.0, 0.0),
+			0.0,
 			0.0
 		)
 
@@ -38,8 +40,8 @@ class Entry:
 		writer.write("time,cell0,cell1,cell2,cell3,cell4,cell5,")
 		writer.write("acc_x,acc_y,acc_z,roll,pitch,yaw,")
 		writer.write("latitude,longitude,satellites,speed,")
-		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,") #TODO order
-		writer.write("steering \n")
+		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,")
+		writer.write("steering, throttle \n")
 
 	def write(self, writer: t.TextIO):
 		print("writing")
@@ -52,7 +54,7 @@ class Entry:
 		writer.write(f"{self.location[0]},{self.location[1]},")
 		writer.write(f"{self.satellites},{self.speed},")
 		for rpm in self.rpms: writer.write(f"{rpm},")
-		writer.write(f"{self.steering} \n")
+		writer.write(f"{self.steering},{self.throttle} \n")
 
 def read_double(reader: t.IO[bytes]) -> float:
 	buffer = reader.read(8) #XXX double may be different sizes
@@ -112,6 +114,7 @@ def main():
 					)
 				case 5: # PWM Sample
 					entry.steering = read_double(ssh_out)
+					#TODO add throttle
 				case _: assert False, "unreachable"
 
 if __name__ == "__main__": main()
