@@ -6,7 +6,7 @@ import struct
 import subprocess as sp
 
 # SSH_CMD = ["ssh", "rcCar@rcCar" "./daq"]
-SSH_CMD = ['cat', 'data.bin']
+SSH_CMD = ['type', 'data.bin']
 CSV_FILE = "TODO.csv" #TODO
 
 @dc.dataclass
@@ -18,7 +18,7 @@ class Entry:
 	location: tuple[float, float] # latitude, longitude
 	satellites: int
 	speed: float
-	rpms: tuple[float, float, float, float] # bl, br, fl, fr
+	rpms: tuple[float, float, float, float] # lr, rr, lf, rf
 	steering: float
 	throttle: float
 
@@ -43,12 +43,10 @@ class Entry:
 		writer.write("acc_x,acc_y,acc_z,roll,pitch,yaw,")
 		writer.write("latitude,longitude,satellites,speed,")
 		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,")
-		writer.write("steering, throttle \n")
+		writer.write("steering,throttle \n")
 
 	def write(self, writer: t.TextIO):
-		print("writing")
 		if self.time is None: return
-		print("actually")
 		writer.write(f"{self.time},")
 		for cell in self.cell_volts: writer.write(f"{cell},")
 		for acc in self.acceleration: writer.write(f"{acc},")
@@ -72,7 +70,6 @@ def main():
 		Entry.write_header(csv_file)
 		entry = Entry.new()
 		for c in iter(lambda: ssh_out.read(1), b""):
-			print("got", c)
 			# Get datum
 			match c[0]:
 				case 0: # Time
