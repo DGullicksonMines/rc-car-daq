@@ -57,7 +57,7 @@ void *_polling(void *args) {
 		printf("reading value \n");
 		struct gpio_v2_line_values values;
 		values.mask = 1 << event.offset;
-		if (ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values) <= 0)
+		if (ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values) < 0)
 			return (void *)-4;
 		bool active = (values.bits & (1 << event.offset)) > 0;
 		// Call interrupt
