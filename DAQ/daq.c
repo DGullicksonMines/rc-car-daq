@@ -116,23 +116,23 @@ int write_samples(
 	bool *PWM_sample_written
 ) {
 	int res = write_time(dest, time);
-	if (res == 0 && !ADC_sample_written) {
+	if (res == 0 && !*ADC_sample_written) {
 		res = write_ADC_sample(dest);
 		*ADC_sample_written = false;
 	}
-	if (res == 0 && !IMU_sample_written) {
+	if (res == 0 && !*IMU_sample_written) {
 		res = write_IMU_sample(dest);
 		*IMU_sample_written = false;
 	}
-	if (res == 0 && !GPS_sample_written) {
+	if (res == 0 && !*GPS_sample_written) {
 		res = write_GPS_sample(dest);
 		*GPS_sample_written = false;
 	}
-	if (res == 0 && !RPM_sample_written) {
+	if (res == 0 && !*RPM_sample_written) {
 		res = write_RPM_sample(dest);
 		*RPM_sample_written = false;
 	}
-	if (res == 0 && !PWM_sample_written) {
+	if (res == 0 && !*PWM_sample_written) {
 		res = write_PWM_sample(dest);
 		*PWM_sample_written = false;
 	}
@@ -467,7 +467,6 @@ void sleep_remainder(
 		req.tv_sec += 1;
 		req.tv_nsec -= 1e9;
 	}
-	printf("waiting %ld, target %ld \n", req.tv_sec, duration.tv_sec);
 	if (req.tv_sec < 0) return;
 	nanosleep(&req, NULL);
 }
