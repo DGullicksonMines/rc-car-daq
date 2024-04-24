@@ -118,23 +118,23 @@ int write_samples(
 	int res = write_time(dest, time);
 	if (res == 0 && !*ADC_sample_written) {
 		res = write_ADC_sample(dest);
-		*ADC_sample_written = false;
+		*ADC_sample_written = true;
 	}
 	if (res == 0 && !*IMU_sample_written) {
 		res = write_IMU_sample(dest);
-		*IMU_sample_written = false;
+		*IMU_sample_written = true;
 	}
 	if (res == 0 && !*GPS_sample_written) {
 		res = write_GPS_sample(dest);
-		*GPS_sample_written = false;
+		*GPS_sample_written = true;
 	}
 	if (res == 0 && !*RPM_sample_written) {
 		res = write_RPM_sample(dest);
-		*RPM_sample_written = false;
+		*RPM_sample_written = true;
 	}
 	if (res == 0 && !*PWM_sample_written) {
 		res = write_PWM_sample(dest);
-		*PWM_sample_written = false;
+		*PWM_sample_written = true;
 	}
 	printf("\n");
 	return res;
