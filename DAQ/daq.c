@@ -258,6 +258,8 @@ void (* const pwm_handlers[PWM_INTERRUPTS])(uint64_t, bool) = {
 	&pwm_handler_1
 };
 
+#define NUM_INTERRUPTS (RPM_INTERRUPTS + PWM_INTERRUPTS)
+
 // ---== Main Loop ==--- //
 
 int run() {
@@ -282,7 +284,7 @@ int run() {
 	
 	// --= Setup callbacks =-- //
 	//TODO
-	PinInterrupt pin_interrupts[RPM_INTERRUPTS + PWM_INTERRUPTS];
+	PinInterrupt pin_interrupts[NUM_INTERRUPTS];
 	// Setup rpm interrupts
 	for (size_t i = 0; i < RPM_INTERRUPTS; i += 1) {
 		pin_interrupts[i].pin = rpm_pins[i];
@@ -291,7 +293,7 @@ int run() {
 		pin_interrupts[i].interrupt = rpm_handlers[i];
 	}
 	// Setup pwm interrupts
-	for (size_t i = RPM_INTERRUPTS; i < RPM_INTERRUPTS + PWM_INTERRUPTS; i += 1) {
+	for (size_t i = RPM_INTERRUPTS; i < NUM_INTERRUPTS; i += 1) {
 		pin_interrupts[i].pin = pwm_pins[i];
 		pin_interrupts[i].edge = EdgeTypeBoth;
 		pin_interrupts[i].bias = BiasNone;
@@ -299,7 +301,7 @@ int run() {
 	}
 	// Begin interrupt polling
 	Handle handle;
-	if (begin_interrupt_polling(pin_interrupts, RPM_INTERRUPTS, &handle) < 0)
+	if (begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle) < 0)
 		return -13;
 
 	// --= Calculate sampling timings =-- //
@@ -320,7 +322,7 @@ int run() {
 	while (!interrupted) {
 		// Sample ADC
 		if (i % ADC_interval == 0) {
-			printf("sampling ADC \n");
+			printf("sampling ADC ");
 			for (size_t i = 0; i < 3; i += 1) {
 				adc_low.config.channel = i;
 				adc_low.config.ready = false;
@@ -337,7 +339,6 @@ int run() {
 		}
 		// Sample IMU
 		if (i % IMU_interval == 0) {
-			printf("sampling IMU \n");
 			if (IMU_read_acceleration(imu, &IMU_sample[0]) < 0) return -9;
 			if (IMU_read_angle(imu, &IMU_sample[3]) < 0) return -10;
 			IMU_sample_recorded = false;
