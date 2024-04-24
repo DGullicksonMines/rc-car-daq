@@ -1,10 +1,12 @@
+#! /usr/bin/env python
+
 import dataclasses as dc
 import typing as t
 import struct
 import subprocess as sp
 
 # SSH_CMD = ["ssh", "rcCar@rcCar" "./daq"]
-SSH_CMD = ['type', 'DAQ\\data.bin']
+SSH_CMD = ['type', 'data.bin']
 CSV_FILE = "TODO.csv" #TODO
 
 @dc.dataclass
@@ -16,8 +18,9 @@ class Entry:
 	location: tuple[float, float] # latitude, longitude
 	satellites: int
 	speed: float
-	rpms: tuple[float, float, float, float] # bl, br, fl, fr
+	rpms: tuple[float, float, float, float] # lr, rr, lf, rf
 	steering: float
+	throttle: float
 
 	@staticmethod
 	def new() -> "Entry":
@@ -30,6 +33,7 @@ class Entry:
 			0,
 			0.0,
 			(0.0, 0.0, 0.0, 0.0),
+			0.0,
 			0.0
 		)
 
@@ -38,13 +42,11 @@ class Entry:
 		writer.write("time,cell0,cell1,cell2,cell3,cell4,cell5,")
 		writer.write("acc_x,acc_y,acc_z,roll,pitch,yaw,")
 		writer.write("latitude,longitude,satellites,speed,")
-		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,") #TODO order
-		writer.write("steering \n")
+		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,")
+		writer.write("steering,throttle \n")
 
 	def write(self, writer: t.TextIO):
-		print("writing")
 		if self.time is None: return
-		print("actually")
 		writer.write(f"{self.time},")
 		for cell in self.cell_volts: writer.write(f"{cell},")
 		for acc in self.acceleration: writer.write(f"{acc},")
@@ -52,7 +54,7 @@ class Entry:
 		writer.write(f"{self.location[0]},{self.location[1]},")
 		writer.write(f"{self.satellites},{self.speed},")
 		for rpm in self.rpms: writer.write(f"{rpm},")
-		writer.write(f"{self.steering} \n")
+		writer.write(f"{self.steering},{self.throttle} \n")
 
 def read_double(reader: t.IO[bytes]) -> float:
 	buffer = reader.read(8) #XXX double may be different sizes
@@ -68,7 +70,6 @@ def main():
 		Entry.write_header(csv_file)
 		entry = Entry.new()
 		for c in iter(lambda: ssh_out.read(1), b""):
-			print("got", c)
 			# Get datum
 			match c[0]:
 				case 0: # Time
@@ -112,6 +113,7 @@ def main():
 					)
 				case 5: # PWM Sample
 					entry.steering = read_double(ssh_out)
+					#TODO add throttle
 				case _: assert False, "unreachable"
 
 if __name__ == "__main__": main()

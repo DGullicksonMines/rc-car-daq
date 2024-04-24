@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stddef.h> // size_t
 #include <stdint.h>
 #include <math.h> // fmod()
 #include <stdio.h> // FILE, fprintf(), fwrite(), fputc(), fopen(), fclose(), stderr
@@ -7,6 +8,7 @@
 
 #include "mcp3424.h"
 #include "jy901.h"
+#include "gpio.h"
 
 // ---== NOTES ==--- ///
 // Very little data processing is done here.
@@ -27,6 +29,7 @@ void sigint_handler(int signum) {
 // ---== Helpers ==--- //
 
 struct timespec now();
+double millis();
 void sleep_remainder(
 	struct timespec duration,
 	struct timespec from,
@@ -57,7 +60,7 @@ double ADC_sample[6]; // lowest->highest; V
 double IMU_sample[6]; // acc_x, acc_y, acc_z, roll, pitch, yaw; m/s^2, degrees
 GPSSample GPS_sample;
 double RPM_sample[4]; // bl, br, fl, fr
-double PWM_sample; // Duty cycle
+double PWM_sample[2]; // steering, throttle; duty cycle
 bool ADC_sample_recorded = true, ADC_sample_sent = true;
 bool IMU_sample_recorded = true, IMU_sample_sent = true;
 bool GPS_sample_recorded = true, GPS_sample_sent = true;
@@ -82,6 +85,7 @@ int write_IMU_sample(FILE *dest) {
 	return write_double(dest, IMU_sample, 6);
 }
 int write_GPS_sample(FILE *dest) {
+	printf("writing gps \n");
 	if (fputc(3, dest) < 0) return -1;
 	if (fputc(GPS_sample.satellites, dest) < 0) return -1;
 	if (write_double(dest, &GPS_sample.lat, 1) < 0) return -1;
@@ -90,10 +94,12 @@ int write_GPS_sample(FILE *dest) {
 	return 0;
 }
 int write_RPM_sample(FILE *dest) {
+	printf("writing rpm \n");
 	if (fputc(4, dest) < 0) return -1;
 	return write_double(dest, RPM_sample, 4);
 }
 int write_PWM_sample(FILE *dest) {
+	printf("writing pwm \n");
 	if (fputc(5, dest) < 0) return -1;
 	return write_double(dest, &PWM_sample, 1);
 }
@@ -107,41 +113,159 @@ int write_samples(
 	bool *PWM_sample_written
 ) {
 	int res = write_time(dest, time);
-	if (res == 0 && !ADC_sample_written) {
+	if (res == 0 && !*ADC_sample_written) {
 		res = write_ADC_sample(dest);
-		*ADC_sample_written = false;
+		*ADC_sample_written = true;
 	}
-	if (res == 0 && !IMU_sample_written) {
+	if (res == 0 && !*IMU_sample_written) {
 		res = write_IMU_sample(dest);
-		*IMU_sample_written = false;
+		*IMU_sample_written = true;
 	}
-	if (res == 0 && !GPS_sample_written) {
+	if (res == 0 && !*GPS_sample_written) {
 		res = write_GPS_sample(dest);
-		*GPS_sample_written = false;
+		*GPS_sample_written = true;
 	}
-	if (res == 0 && !RPM_sample_written) {
+	if (res == 0 && !*RPM_sample_written) {
 		res = write_RPM_sample(dest);
-		*RPM_sample_written = false;
+		*RPM_sample_written = true;
 	}
-	if (res == 0 && !PWM_sample_written) {
-		res = write_ADC_sample(dest);
-		*PWM_sample_written = false;
+	if (res == 0 && !*PWM_sample_written) {
+		res = write_PWM_sample(dest);
+		*PWM_sample_written = true;
 	}
 	return res;
 }
 
 // ---== Callbacks ==--- //
-//TODO
+// --= RPM =-- //
+#define RPM_INTERRUPTS 4
+#define NUM_TIMES 5
+const uint8_t rpm_pins[RPM_INTERRUPTS] = {10, 22, 27, 17};
+double times[RPM_INTERRUPTS][NUM_TIMES];
+bool all_valid[RPM_INTERRUPTS] = {0};
+size_t cur_idx[RPM_INTERRUPTS] = {0};
+
+void generic_rpm_handler(
+	const size_t index,
+	double cur_time,
+	double *const times,
+	bool *const all_valid,
+	size_t *const cur_idx
+) {
+	// Print RPM
+	const size_t first_idx = (*all_valid) ? *cur_idx : 0;
+	// const size_t prev_idx = (*cur_idx - 1 + NUM_TIMES) % NUM_TIMES;
+	const double first_time = times[first_idx];
+	// const double prev_time = times[prev_idx];
+	const size_t num_valid = (*all_valid) ? NUM_TIMES : *cur_idx;
+	const double to_rpm = 1000.0*60.0/5.0; // interrupts/ms to rpm
+	const double full_rpm = to_rpm*num_valid/(cur_time - first_time);
+	// const double single_rpm = to_rpm/(cur_time - prev_time);
+	//XXX Only one has to change for sample to be resent
+	RPM_sample[index] = full_rpm;
+	RPM_sample_recorded = false;
+	RPM_sample_sent = false;
+	printf("rpm sample \n");
+	// Record time
+	times[*cur_idx] = cur_time;
+	// Increment
+	*cur_idx = (*cur_idx + 1) % NUM_TIMES;
+	if (*cur_idx == 0) *all_valid = true;
+}
+
+void generic_rpm_handler_wrapper(
+	const size_t interrupt,
+	uint64_t ns
+) {
+	generic_rpm_handler(
+		interrupt,
+		ns/1e6,
+		times[interrupt],
+		&all_valid[interrupt],
+		&cur_idx[interrupt]
+	);
+}
+
+#define rpm_handler(i) void rpm_handler_##i(uint64_t ns, bool active) { \
+	(void)active; \
+	generic_rpm_handler_wrapper(i, ns); \
+}
+rpm_handler(0)
+rpm_handler(1)
+rpm_handler(2)
+rpm_handler(3)
+void (* const rpm_handlers[RPM_INTERRUPTS])(uint64_t, bool) = {
+	&rpm_handler_0,
+	&rpm_handler_1,
+	&rpm_handler_2,
+	&rpm_handler_3
+};
+
+// --= PWM =-- //
+#define PWM_INTERRUPTS 2
+const uint8_t pwm_pins[PWM_INTERRUPTS] = {9, 11};
+double prev_inactive_times[PWM_INTERRUPTS] = {0};
+double prev_active_times[PWM_INTERRUPTS] = {0};
+
+void generic_pwm_handler(
+	size_t index,
+	double cur_time,
+	bool active,
+	double *prev_active_time,
+	double *prev_inactive_time
+) {
+	double active_duration;
+	double total_duration;
+	if (active) {
+		active_duration = *prev_inactive_time - *prev_active_time;
+		total_duration = cur_time - *prev_active_time;
+	} else {
+		active_duration = cur_time - *prev_active_time;
+		total_duration = cur_time - *prev_inactive_time;
+	}
+	PWM_sample[index] = active_duration/total_duration;
+	//XXX Only one has to change for sample to be resent
+	PWM_sample_recorded = false;
+	PWM_sample_sent = false;
+	printf("pwm sample \n");
+}
+
+void generic_pwm_handler_wrapper(
+	const size_t interrupt,
+	uint64_t ns,
+	bool active
+) {
+	generic_pwm_handler(
+		interrupt,
+		ns/1e6,
+		active,
+		&prev_active_times[interrupt],
+		&prev_inactive_times[interrupt]
+	);
+}
+
+#define pwm_handler(i) void pwm_handler_##i(uint64_t ns, bool active) { \
+	generic_pwm_handler_wrapper(i, ns, active); \
+}
+pwm_handler(0)
+pwm_handler(1)
+void (* const pwm_handlers[PWM_INTERRUPTS])(uint64_t, bool) = {
+	&pwm_handler_0,
+	&pwm_handler_1
+};
+
+#define NUM_INTERRUPTS (RPM_INTERRUPTS + PWM_INTERRUPTS)
 
 // ---== Main Loop ==--- //
 
 int run() {
 	signal(SIGINT, sigint_handler);
 
-	// Initialize and open resources
-	//TODO
+	// --= Initialize and open resources =-- //
+	// Open out file
 	FILE *out_file = fopen(OUT_FILE, "w");
 	if (out_file == NULL) return -1;
+	// Initialize ADCs
     ADC adc_low, adc_high;
     int init_result = ADC_init(&adc_low, I2C_BUS, adc_low_addr);
 	init_result |= ADC_init(&adc_high, I2C_BUS, adc_high_addr); //XXX may have to share bus
@@ -150,13 +274,33 @@ int run() {
     adc_low.config.sample_rate = HZ3_75;
     adc_low.config.gain = 0;
 	adc_high.config = adc_low.config;
+	// Initialize IMU
     IMU imu;
     if (IMU_init(&imu, I2C_BUS) < 0) return -3; //XXX may have to share bus
 	
-	// Setup callbacks
+	// --= Setup callbacks =-- //
 	//TODO
+	PinInterrupt pin_interrupts[NUM_INTERRUPTS];
+	// Setup rpm interrupts
+	for (size_t i = 0; i < RPM_INTERRUPTS; i += 1) {
+		pin_interrupts[i].pin = rpm_pins[i];
+		pin_interrupts[i].edge = EdgeTypeFalling;
+		pin_interrupts[i].bias = BiasPullUp;
+		pin_interrupts[i].interrupt = rpm_handlers[i];
+	}
+	// Setup pwm interrupts
+	for (size_t i = RPM_INTERRUPTS; i < NUM_INTERRUPTS; i += 1) {
+		pin_interrupts[i].pin = pwm_pins[i - RPM_INTERRUPTS];
+		pin_interrupts[i].edge = EdgeTypeBoth;
+		pin_interrupts[i].bias = BiasNone;
+		pin_interrupts[i].interrupt = pwm_handlers[i];
+	}
+	// Begin interrupt polling
+	Handle handle;
+	if (begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle) < 0)
+		return -13;
 
-	// Calculate sampling timings
+	// --= Calculate sampling timings =-- //
 	const uint32_t send_interval = (uint32_t)(loop_frequency/send_frequency); // loops/send
 	const uint32_t ADC_interval = (uint32_t)(loop_frequency/ADC_frequency);   // loops/ADC sample
 	const uint32_t IMU_interval = (uint32_t)(loop_frequency/IMU_frequency);   // loops/IMU sample
@@ -164,23 +308,24 @@ int run() {
 	const double loop_time = 1.0/loop_frequency;
 	struct timespec sleep_time = {
 		.tv_sec = (time_t)loop_time,
-		.tv_nsec = (long)(fmod(loop_time, 1.0) * 1e9)
+		.tv_nsec = (long)(fmod(loop_time, 1.0)*1e9),
 	};
 
-	// Main loop
+	// --= Main loop =-- //
 	uint64_t i = 0;
 	struct timespec last_time = now();
+	//TODO we should occasionally check if the polling thread has had any errors
 	while (!interrupted) {
 		// Sample ADC
 		if (i % ADC_interval == 0) {
 			for (size_t i = 0; i < 3; i += 1) {
 				adc_low.config.channel = i;
 				adc_low.config.ready = false;
-				if (ADC_configure(adc_low) < 0) return -4;
+				// if (ADC_configure(adc_low) < 0) return -4;
 				adc_high.config = adc_low.config;
 				if (ADC_configure(adc_high) < 0) return -4;
-				while (ADC_is_ready(adc_low) == 0);
-				if (ADC_read(adc_low, &ADC_sample[i]) != 1) return -5;
+				// while (ADC_is_ready(adc_low) == 0);
+				// if (ADC_read(adc_low, &ADC_sample[i]) != 1) return -5;
 				while (ADC_is_ready(adc_high) == 0);
 				if (ADC_read(adc_high, &ADC_sample[3 + i]) != 1) return -5;
 			}
@@ -206,15 +351,15 @@ int run() {
 		) < 0) return -11;
 		// Send samples
 		if (i % send_interval == 0) {
-			if (write_samples(
-				stdout,
-				last_time,
-				&ADC_sample_sent,
-				&IMU_sample_sent,
-				&GPS_sample_sent,
-				&RPM_sample_sent,
-				&PWM_sample_sent
-			) < 0) return -12;
+			// if (write_samples(
+			// 	stdout,
+			// 	last_time,
+			// 	&ADC_sample_sent,
+			// 	&IMU_sample_sent,
+			// 	&GPS_sample_sent,
+			// 	&RPM_sample_sent,
+			// 	&PWM_sample_sent
+			// ) < 0) return -12;
 		}
 		// Increment
 		i = (i + 1) % common_interval;
@@ -224,12 +369,17 @@ int run() {
 		last_time = cur_time;
 	}
 
-	// Deinitialize and close resources
+	// --= Deinitialize and close resources =-- //
 	//TODO
+	// End interrupt polling
+	if (end_interrupt_polling(&handle) < 0) return -14;
+	// Deinitialize IMU
 	if (IMU_deinit(imu) < 0) return -8;
+	// Deinitialize ADCs
 	int deinit_result = ADC_deinit(adc_high);
 	deinit_result |= ADC_deinit(adc_high);
 	if (deinit_result < 0) return -6;
+	// Close out file
 	if (fclose(out_file) < 0) return -7;
 	return 0;
 }
@@ -244,6 +394,9 @@ int main() {
 		break;
 	case -3:
 		fprintf(stderr, "error: opening I2C bus for IMU \n");
+		break;
+	case -13:
+		fprintf(stderr, "error: beginning interrupt polling \n");
 		break;
 	case -4:
 		fprintf(stderr, "error: configuring ADC \n");
@@ -262,6 +415,9 @@ int main() {
 		break;
 	case -12:
 		fprintf(stderr, "error: sending samples \n");
+		break;
+	case -14:
+		fprintf(stderr, "error: ending interrupt polling \n");
 		break;
 	case -8:
 		fprintf(stderr, "error: deinitializing IMU bus \n");
@@ -283,18 +439,29 @@ struct timespec now() {
 	return ts;
 }
 
+double millis() {
+	struct timespec ts = now();
+	double ms = (double)ts.tv_sec*1e3;
+	ms += (double)ts.tv_nsec/1e6;
+	return ms;
+}
+
 void sleep_remainder(
 	struct timespec duration,
 	struct timespec from,
 	struct timespec now
 ) {
 	struct timespec req = {
-		.tv_sec = duration.tv_sec + (now.tv_sec - from.tv_sec),
-		.tv_nsec = duration.tv_nsec + (now.tv_nsec - from.tv_nsec)
+		.tv_sec = duration.tv_sec - (now.tv_sec - from.tv_sec),
+		.tv_nsec = duration.tv_nsec - (now.tv_nsec - from.tv_nsec),
 	};
 	if (req.tv_nsec < 0) {
 		req.tv_sec -= 1;
 		req.tv_nsec += 1e9;
+	} else if (req.tv_nsec > 1e9) {
+		req.tv_sec += 1;
+		req.tv_nsec -= 1e9;
 	}
+	if (req.tv_sec < 0) return;
 	nanosleep(&req, NULL);
 }
