@@ -56,15 +56,16 @@ void *_polling(void *args) {
 		// Read line value
 		//XXX will this slow us down significantly?
 		printf("reading value \n");
-		struct gpio_v2_line_values values = {
-			.bits = 0,
-			.mask = 0,
-		};
-		int res = ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values);
-		printf("res: %d, err: %d \n", res, errno);
-		if (res < 0)
-			return (void *)-4;
-		bool active = (values.bits & (1 << event.offset)) > 0;
+		// struct gpio_v2_line_values values = {
+		// 	.bits = 0,
+		// 	.mask = 1 << event.offset,
+		// };
+		// int res = ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values);
+		// printf("res: %d, err: %d \n", res, errno);
+		// if (res < 0)
+		// 	return (void *)-4;
+		// bool active = (values.bits & (1 << event.offset)) > 0;
+		bool active = false;
 		// Call interrupt
 		//XXX what if we don't call an interrupt here?
 		for (size_t i = 0; i < num_interrupts; i += 1) {
