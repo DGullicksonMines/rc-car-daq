@@ -295,7 +295,7 @@ int run() {
 	}
 	// Setup pwm interrupts
 	for (size_t i = RPM_INTERRUPTS; i < NUM_INTERRUPTS; i += 1) {
-		printf("setting interrupt %ld for pin %d \n", i, rpm_pins[i]);
+		printf("setting interrupt %ld for pin %d \n", i, pwm_pins[i]);
 		pin_interrupts[i].pin = pwm_pins[i];
 		pin_interrupts[i].edge = EdgeTypeBoth;
 		pin_interrupts[i].bias = BiasNone;

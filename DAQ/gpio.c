@@ -39,6 +39,7 @@ void *_polling(void *args) {
 
 	// Loop until cancelled
 	while (pthread_mutex_trylock(canceled) != 0) {
+		printf("polling \n");
 		// Poll for interrupt
 		const int poll_result = poll(&poll_fd, 1, 1000);
 		if (poll_result < 0) return (void *)-1; // Poll error
@@ -73,7 +74,6 @@ int begin_interrupt_polling(
 	const size_t num_interrupts,
 	Handle *const handle
 ) {
-	printf("opening \n");
 	// Open GPIO Chip
 	const int chip_fd = open(GPIO_CHIP, O_RDONLY);
 	if (chip_fd < 0) return -1;
@@ -89,7 +89,6 @@ int begin_interrupt_polling(
 	// Create line configurations
 	if (num_interrupts > GPIO_V2_LINE_NUM_ATTRS_MAX) return -2;
 	for (size_t i = 0; i < num_interrupts; i += 1) {
-		printf("configuring interrupt %ld \n", i);
 		uint64_t flags = default_flags;
 		// Set edge
 		switch (interrupts[i].edge) {
@@ -108,7 +107,6 @@ int begin_interrupt_polling(
 		case BiasPullDown: flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN; break;
 		}
 		if (flags == default_flags) continue;
-		printf("custom configuration \n");
 		// Add attribute
 		struct gpio_v2_line_attribute attr = {
 			.id = GPIO_V2_LINE_ATTR_ID_FLAGS,
@@ -143,6 +141,7 @@ int begin_interrupt_polling(
 	};
 
 	// Create polling thread
+	printf("creating thread \n");
 	if (pthread_mutex_init(&handle->canceled, NULL) < 0) return -5;
 	if (pthread_mutex_lock(&handle->canceled) < 0) return -6;
 	_ThreadArgs args = {
