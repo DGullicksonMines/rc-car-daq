@@ -127,7 +127,7 @@ int write_samples(
 		*RPM_sample_written = false;
 	}
 	if (res == 0 && !PWM_sample_written) {
-		res = write_ADC_sample(dest);
+		res = write_PWM_sample(dest);
 		*PWM_sample_written = false;
 	}
 	return res;
@@ -162,6 +162,7 @@ void generic_rpm_handler(
 	RPM_sample[index] = full_rpm;
 	RPM_sample_recorded = false;
 	RPM_sample_sent = false;
+	printf("rpm sample \n");
 	// Record time
 	times[*cur_idx] = cur_time;
 	// Increment
@@ -223,6 +224,7 @@ void generic_pwm_handler(
 	//XXX Only one has to change for sample to be resent
 	PWM_sample_recorded = false;
 	PWM_sample_sent = false;
+	printf("pwm sample \n");
 }
 
 void generic_pwm_handler_wrapper(
@@ -310,6 +312,7 @@ int run() {
 	while (!interrupted) {
 		// Sample ADC
 		if (i % ADC_interval == 0) {
+			printf("sampling ADC \n");
 			for (size_t i = 0; i < 3; i += 1) {
 				adc_low.config.channel = i;
 				adc_low.config.ready = false;
@@ -326,6 +329,7 @@ int run() {
 		}
 		// Sample IMU
 		if (i % IMU_interval == 0) {
+			printf("sampling IMU \n");
 			if (IMU_read_acceleration(imu, &IMU_sample[0]) < 0) return -9;
 			if (IMU_read_angle(imu, &IMU_sample[3]) < 0) return -10;
 			IMU_sample_recorded = false;
@@ -343,15 +347,16 @@ int run() {
 		) < 0) return -11;
 		// Send samples
 		if (i % send_interval == 0) {
-			if (write_samples(
-				stdout,
-				last_time,
-				&ADC_sample_sent,
-				&IMU_sample_sent,
-				&GPS_sample_sent,
-				&RPM_sample_sent,
-				&PWM_sample_sent
-			) < 0) return -12;
+			printf("sending \n");
+			// if (write_samples(
+			// 	stdout,
+			// 	last_time,
+			// 	&ADC_sample_sent,
+			// 	&IMU_sample_sent,
+			// 	&GPS_sample_sent,
+			// 	&RPM_sample_sent,
+			// 	&PWM_sample_sent
+			// ) < 0) return -12;
 		}
 		// Increment
 		i = (i + 1) % common_interval;
@@ -451,5 +456,6 @@ void sleep_remainder(
 		req.tv_sec -= 1;
 		req.tv_nsec += 1e9;
 	}
+	printf("%ld \n", req.tv_sec);
 	nanosleep(&req, NULL);
 }
