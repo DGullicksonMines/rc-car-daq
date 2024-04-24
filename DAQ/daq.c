@@ -313,11 +313,11 @@ int run() {
 			for (size_t i = 0; i < 3; i += 1) {
 				adc_low.config.channel = i;
 				adc_low.config.ready = false;
-				if (ADC_configure(adc_low) < 0) return -4;
+				// if (ADC_configure(adc_low) < 0) return -4;
 				adc_high.config = adc_low.config;
 				if (ADC_configure(adc_high) < 0) return -4;
-				while (ADC_is_ready(adc_low) == 0);
-				if (ADC_read(adc_low, &ADC_sample[i]) != 1) return -5;
+				// while (ADC_is_ready(adc_low) == 0);
+				// if (ADC_read(adc_low, &ADC_sample[i]) != 1) return -5;
 				while (ADC_is_ready(adc_high) == 0);
 				if (ADC_read(adc_high, &ADC_sample[3 + i]) != 1) return -5;
 			}
