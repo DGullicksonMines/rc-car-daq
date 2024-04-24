@@ -131,7 +131,6 @@ int begin_interrupt_polling(
 	if (num_interrupts > GPIO_V2_LINES_MAX) return -3;
 	for (size_t i = 0; i < num_interrupts; i += 1)
 		line_req.offsets[i] = (uint32_t)interrupts[i].pin;
-	printf("opening lines \n");
 	if (ioctl(chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_req) < 0) return -4;
 
 	// Initialize polling
@@ -141,7 +140,6 @@ int begin_interrupt_polling(
 	};
 
 	// Create polling thread
-	printf("creating thread \n");
 	if (pthread_mutex_init(&handle->canceled, NULL) < 0) return -5;
 	if (pthread_mutex_lock(&handle->canceled) < 0) return -6;
 	_ThreadArgs args = {

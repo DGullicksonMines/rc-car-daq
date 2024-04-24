@@ -72,23 +72,20 @@ int write_double(FILE *dest, const void *data, size_t count) {
 	return 0;
 }
 int write_time(FILE *dest, struct timespec time) {
-	printf("time ");
 	if (fputc(0, dest) < 0) return -1;
 	double secs = time.tv_sec + time.tv_nsec/1e9;
 	return write_double(dest, &secs, 1);
 }
 int write_ADC_sample(FILE *dest) {
-	printf("adc ");
 	if (fputc(1, dest) < 0) return -1;
 	return write_double(dest, ADC_sample, 6);
 }
 int write_IMU_sample(FILE *dest) {
-	printf("imu ");
 	if (fputc(2, dest) < 0) return -1;
 	return write_double(dest, IMU_sample, 6);
 }
 int write_GPS_sample(FILE *dest) {
-	printf("gps ");
+	printf("writing gps \n");
 	if (fputc(3, dest) < 0) return -1;
 	if (fputc(GPS_sample.satellites, dest) < 0) return -1;
 	if (write_double(dest, &GPS_sample.lat, 1) < 0) return -1;
@@ -97,12 +94,12 @@ int write_GPS_sample(FILE *dest) {
 	return 0;
 }
 int write_RPM_sample(FILE *dest) {
-	printf("rpm ");
+	printf("writing rpm \n");
 	if (fputc(4, dest) < 0) return -1;
 	return write_double(dest, RPM_sample, 4);
 }
 int write_PWM_sample(FILE *dest) {
-	printf("pwm ");
+	printf("writing pwm \n");
 	if (fputc(5, dest) < 0) return -1;
 	return write_double(dest, &PWM_sample, 1);
 }
@@ -136,7 +133,6 @@ int write_samples(
 		res = write_PWM_sample(dest);
 		*PWM_sample_written = true;
 	}
-	printf("\n");
 	return res;
 }
 
@@ -287,7 +283,6 @@ int run() {
 	PinInterrupt pin_interrupts[NUM_INTERRUPTS];
 	// Setup rpm interrupts
 	for (size_t i = 0; i < RPM_INTERRUPTS; i += 1) {
-		printf("setting interrupt %ld for pin %d \n", i, rpm_pins[i]);
 		pin_interrupts[i].pin = rpm_pins[i];
 		pin_interrupts[i].edge = EdgeTypeFalling;
 		pin_interrupts[i].bias = BiasPullUp;
@@ -295,7 +290,6 @@ int run() {
 	}
 	// Setup pwm interrupts
 	for (size_t i = RPM_INTERRUPTS; i < NUM_INTERRUPTS; i += 1) {
-		printf("setting interrupt %ld for pin %d \n", i, pwm_pins[i - RPM_INTERRUPTS]);
 		pin_interrupts[i].pin = pwm_pins[i - RPM_INTERRUPTS];
 		pin_interrupts[i].edge = EdgeTypeBoth;
 		pin_interrupts[i].bias = BiasNone;
@@ -316,7 +310,6 @@ int run() {
 		.tv_sec = (time_t)loop_time,
 		.tv_nsec = (long)(fmod(loop_time, 1.0)*1e9)
 	};
-	printf("sleep time: %ld \n", sleep_time.tv_sec);
 
 	// --= Main loop =-- //
 	uint64_t i = 0;
@@ -325,7 +318,6 @@ int run() {
 	while (!interrupted) {
 		// Sample ADC
 		if (i % ADC_interval == 0) {
-			printf("sampling ADC ");
 			for (size_t i = 0; i < 3; i += 1) {
 				adc_low.config.channel = i;
 				adc_low.config.ready = false;
@@ -359,7 +351,6 @@ int run() {
 		) < 0) return -11;
 		// Send samples
 		if (i % send_interval == 0) {
-			printf("sending \n");
 			// if (write_samples(
 			// 	stdout,
 			// 	last_time,
