@@ -308,7 +308,7 @@ int run() {
 	const double loop_time = 1.0/loop_frequency;
 	struct timespec sleep_time = {
 		.tv_sec = (time_t)loop_time,
-		.tv_nsec = (long)(fmod(loop_time, 1.0)*1e9)
+		.tv_nsec = (long)(fmod(loop_time, 1.0)*1e9),
 	};
 
 	// --= Main loop =-- //
@@ -453,7 +453,7 @@ void sleep_remainder(
 ) {
 	struct timespec req = {
 		.tv_sec = duration.tv_sec - (now.tv_sec - from.tv_sec),
-		.tv_nsec = duration.tv_nsec - (now.tv_nsec - from.tv_nsec)
+		.tv_nsec = duration.tv_nsec - (now.tv_nsec - from.tv_nsec),
 	};
 	if (req.tv_nsec < 0) {
 		req.tv_sec -= 1;
