@@ -463,7 +463,11 @@ void sleep_remainder(
 	if (req.tv_nsec < 0) {
 		req.tv_sec -= 1;
 		req.tv_nsec += 1e9;
+	} else if (req.tv_nsec > 1e9) {
+		req.tv_sec += 1;
+		req.tv_nsec -= 1e9;
 	}
 	printf("waiting %ld, target %ld \n", req.tv_sec, duration.tv_sec);
+	if (req.tv_sec < 0) return
 	nanosleep(&req, NULL);
 }
