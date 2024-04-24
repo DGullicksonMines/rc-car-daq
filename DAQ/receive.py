@@ -1,10 +1,12 @@
+#! /usr/bin/env python
+
 import dataclasses as dc
 import typing as t
 import struct
 import subprocess as sp
 
 # SSH_CMD = ["ssh", "rcCar@rcCar" "./daq"]
-SSH_CMD = ['type', 'data.bin']
+SSH_CMD = ['cat', 'data.bin']
 CSV_FILE = "TODO.csv" #TODO
 
 @dc.dataclass
