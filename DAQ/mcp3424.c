@@ -111,3 +111,23 @@ int ADC_read(ADC adc, double *value) {
     if (config.ready) return 1;
     return 0;
 }
+
+int ADC_is_ready(ADC adc) {
+    // Get bit mode
+    BitMode bit_mode = ADC_bit_mode(adc);
+
+    // Read data bytes and config byte from ADC
+    // Data bytes: 3 in 18-bit mode, 2 otherwise
+    if (_ADC_set_slave_addr(adc) < 0) return -2;
+    uint8_t buffer[4];
+    if (bit_mode == Bits18) {
+        if (read(adc.bus, buffer, 4) != 4) return -1;
+    } else {
+        if (read(adc.bus, &buffer[1], 3) != 3) return -1;
+    }
+
+    // Check if sample was up to date
+    Config config = parse_config_byte(buffer[3]);
+    if (config.ready) return 1;
+    return 0;
+}
