@@ -42,19 +42,23 @@ void *_polling(void *args) {
 		printf("polling \n");
 		// Poll for interrupt
 		const int poll_result = poll(&poll_fd, 1, 1000);
+		printf("checking for error \n");
 		if (poll_result < 0) return (void *)-1; // Poll error
 		if (poll_result == 0) continue; // Timed out
-		if ((poll_fd.revents & POLLIN) == 0) return (void *)-3; // No POLLPRI event
+		printf("checking for event \n");
+		if ((poll_fd.revents & POLLIN) == 0) return (void *)-2; // No POLLIN event
 		// Read line event
+		printf("reading event \n");
 		struct gpio_v2_line_event event;
 		if (read(poll_fd.fd, &event, sizeof(struct gpio_v2_line_event)) <= 0)
-			return (void *)-4;
+			return (void *)-3;
 		// Read line value
 		//XXX will this slow us down significantly?
+		printf("reading value \n");
 		struct gpio_v2_line_values values;
 		values.mask = 1 << event.offset;
 		if (ioctl(poll_fd.fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values) <= 0)
-			return (void *)-5;
+			return (void *)-4;
 		bool active = (values.bits & (1 << event.offset)) > 0;
 		// Call interrupt
 		//XXX what if we don't call an interrupt here?
@@ -65,8 +69,8 @@ void *_polling(void *args) {
 		}
 	}
 
-	if (pthread_mutex_unlock(canceled) < 0) return (void *)-6;
-	return 0;
+	if (pthread_mutex_unlock(canceled) < 0) return (void *)-5;
+	return (void *)0;
 }
 
 int begin_interrupt_polling(
