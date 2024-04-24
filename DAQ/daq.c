@@ -72,19 +72,23 @@ int write_double(FILE *dest, const void *data, size_t count) {
 	return 0;
 }
 int write_time(FILE *dest, struct timespec time) {
+	printf("time ");
 	if (fputc(0, dest) < 0) return -1;
 	double secs = time.tv_sec + time.tv_nsec/1e9;
 	return write_double(dest, &secs, 1);
 }
 int write_ADC_sample(FILE *dest) {
+	printf("adc ");
 	if (fputc(1, dest) < 0) return -1;
 	return write_double(dest, ADC_sample, 6);
 }
 int write_IMU_sample(FILE *dest) {
+	printf("imu ");
 	if (fputc(2, dest) < 0) return -1;
 	return write_double(dest, IMU_sample, 6);
 }
 int write_GPS_sample(FILE *dest) {
+	printf("gps ");
 	if (fputc(3, dest) < 0) return -1;
 	if (fputc(GPS_sample.satellites, dest) < 0) return -1;
 	if (write_double(dest, &GPS_sample.lat, 1) < 0) return -1;
@@ -93,10 +97,12 @@ int write_GPS_sample(FILE *dest) {
 	return 0;
 }
 int write_RPM_sample(FILE *dest) {
+	printf("rpm ");
 	if (fputc(4, dest) < 0) return -1;
 	return write_double(dest, RPM_sample, 4);
 }
 int write_PWM_sample(FILE *dest) {
+	printf("pwm ");
 	if (fputc(5, dest) < 0) return -1;
 	return write_double(dest, &PWM_sample, 1);
 }
@@ -130,6 +136,7 @@ int write_samples(
 		res = write_PWM_sample(dest);
 		*PWM_sample_written = false;
 	}
+	printf("\n");
 	return res;
 }
 
@@ -305,6 +312,7 @@ int run() {
 		.tv_sec = (time_t)loop_time,
 		.tv_nsec = (long)(fmod(loop_time, 1.0)*1e9)
 	};
+	printf("sleep time: %ld \n", sleep_time.tv_sec);
 
 	// --= Main loop =-- //
 	uint64_t i = 0;
@@ -456,6 +464,6 @@ void sleep_remainder(
 		req.tv_sec -= 1;
 		req.tv_nsec += 1e9;
 	}
-	printf("%ld \n", req.tv_sec);
+	printf("waiting %ld, target %ld \n", req.tv_sec, duration.tv_sec);
 	nanosleep(&req, NULL);
 }
