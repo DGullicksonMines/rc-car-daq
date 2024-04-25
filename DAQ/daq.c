@@ -305,7 +305,9 @@ int run() {
 	}
 	// Begin interrupt polling //TODO use NUM_INTERRUPTS
 	Handle handle;
-	if (begin_interrupt_polling(pin_interrupts, RPM_INTERRUPTS, &handle) < 0)
+	int res = begin_interrupt_polling(pin_interrupts, RPM_INTERRUPTS, &handle);
+	printf("bip res: %d \n", res);
+	if (res < 0)
 		return -13;
 
 	// --= Calculate sampling timings =-- //
