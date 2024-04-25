@@ -71,7 +71,6 @@ def main():
 	assert ssh_out is not None
 	# Open CSV
 	with open(CSV_FILE, "w") as csv_file:
-		Entry.write_header(csv_file)
 		entry = Entry.new()
 		try:
 			for c in iter(lambda: ssh_out.read(1), b""):
@@ -79,6 +78,8 @@ def main():
 				match c[0]:
 					case 0: # Time
 						# Send current data
+						csv_file.truncate(0)
+						Entry.write_header(csv_file)
 						entry.write(csv_file)
 						csv_file.flush()
 						# Get time
