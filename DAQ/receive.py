@@ -18,7 +18,7 @@ class Entry:
 	angle: tuple[float, float, float] # roll, pitch, yaw; degrees
 	location: tuple[float, float] # latitude, longitude
 	satellites: int
-	speed: float
+	velocity: float
 	rpms: tuple[float, float, float, float] # lr, rr, lf, rf
 	steering: float
 	throttle: float
@@ -42,7 +42,7 @@ class Entry:
 	def write_header(writer: t.TextIO):
 		writer.write("time,cell0,cell1,cell2,cell3,cell4,cell5,")
 		writer.write("acc_x,acc_y,acc_z,roll,pitch,yaw,")
-		writer.write("latitude,longitude,satellites,speed,")
+		writer.write("latitude,longitude,satellites,velocity,")
 		writer.write("rpm_lr,rpm_rr,rpm_lf,rpm_rf,")
 		writer.write("steering,throttle \n")
 
@@ -53,7 +53,7 @@ class Entry:
 		for acc in self.acceleration: writer.write(f"{acc},")
 		for ang in self.angle: writer.write(f"{ang},")
 		writer.write(f"{self.location[0]},{self.location[1]},")
-		writer.write(f"{self.satellites},{self.speed},")
+		writer.write(f"{self.satellites},{self.velocity},")
 		for rpm in self.rpms: writer.write(f"{rpm},")
 		writer.write(f"{self.steering},{self.throttle} \n")
 
@@ -110,7 +110,7 @@ def main():
 						read_double(ssh_out),
 						read_double(ssh_out)
 					)
-					entry.speed = read_double(ssh_out)
+					entry.velocity = read_double(ssh_out)
 				case 4: # RPM Sample
 					entry.rpms = (
 						read_double(ssh_out),
