@@ -63,6 +63,7 @@ def read_double(reader: t.IO[bytes]) -> float:
 
 def main():
 	# Start SSH
+	print("Starting SSH...")
 	ssh = sp.Popen(SSH_CMD, stdout=sp.PIPE, stdin=sp.PIPE, shell=True)
 	# Login
 	ssh_in = ssh.stdin
