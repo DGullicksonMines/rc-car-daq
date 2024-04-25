@@ -40,22 +40,17 @@ void *_polling(void *args) {
 
 	// Loop until cancelled
 	while (pthread_mutex_trylock(canceled) != 0) {
-		printf("polling \n");
 		// Poll for interrupt
 		const int poll_result = poll(&poll_fd, 1, 1000);
-		printf("checking for error \n");
 		if (poll_result < 0) return (void *)-1; // Poll error
 		if (poll_result == 0) continue; // Timed out
-		printf("checking for event \n");
 		if ((poll_fd.revents & POLLIN) == 0) return (void *)-2; // No POLLIN event
 		// Read line event
-		printf("reading event \n");
 		struct gpio_v2_line_event event;
 		if (read(poll_fd.fd, &event, sizeof(struct gpio_v2_line_event)) <= 0)
 			return (void *)-3;
 		// Read line value
 		//XXX will this slow us down significantly?
-		printf("reading value \n");
 		// struct gpio_v2_line_values values = {
 		// 	.bits = 0,
 		// 	.mask = 1 << event.offset,
