@@ -359,15 +359,15 @@ int run() {
 		) < 0) return -11;
 		// Send samples
 		if (i % send_interval == 0) {
-			// if (write_samples(
-			// 	stdout,
-			// 	last_time,
-			// 	&ADC_sample_sent,
-			// 	&IMU_sample_sent,
-			// 	&GPS_sample_sent,
-			// 	&RPM_sample_sent,
-			// 	&PWM_sample_sent
-			// ) < 0) return -12;
+			if (write_samples(
+				stdout,
+				last_time,
+				&ADC_sample_sent,
+				&IMU_sample_sent,
+				&GPS_sample_sent,
+				&RPM_sample_sent,
+				&PWM_sample_sent
+			) < 0) return -12;
 		}
 		// Increment
 		i = (i + 1) % common_interval;

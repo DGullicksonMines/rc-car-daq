@@ -8,7 +8,7 @@ import subprocess as sp
 ip_addr = input("IP Addr: ")
 SSH_CMD = ["ssh", f"rcCar@{ip_addr}", "~/rc-car-daq/DAQ/out/daq"]
 # SSH_CMD = ['type', 'data.bin']
-CSV_FILE = "TODO.csv" #TODO
+CSV_FILE = "DAQ.csv"
 
 @dc.dataclass
 class Entry:
@@ -70,57 +70,63 @@ def main():
 	ssh_out = ssh.stdout
 	assert ssh_in is not None
 	assert ssh_out is not None
-	ssh_in.write(b"admin\n")
+	ssh_in.write(b"admin\n") #TODO make this work
 	_ = ssh_out.read() 
 	# Open CSV
 	with open(CSV_FILE, "w") as csv_file:
 		Entry.write_header(csv_file)
 		entry = Entry.new()
-		for c in iter(lambda: ssh_out.read(1), b""):
-			# Get datum
-			match c[0]:
-				case 0: # Time
-					# Send current data
-					entry.write(csv_file)
-					# Get time
-					entry.time = read_double(ssh_out)
-				case 1: # ADC Sample
-					entry.cell_volts = (
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out)
-					)
-				case 2: # IMU Sample
-					entry.acceleration = (
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out)
-					)
-					entry.angle = (
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out)
-					)
-				case 3: # GPS Sample
-					entry.satellites = int(ssh_out.read(1))
-					entry.location = (
-						read_double(ssh_out),
-						read_double(ssh_out)
-					)
-					entry.velocity = read_double(ssh_out)
-				case 4: # RPM Sample
-					entry.rpms = (
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out),
-						read_double(ssh_out)
-					)
-				case 5: # PWM Sample
-					entry.steering = read_double(ssh_out)
-					#TODO add throttle
-				case _: assert False, "unreachable"
+		# Create zeros line to start
+		entry.time = 0
+		entry.write(csv_file)
+		try:
+			for c in iter(lambda: ssh_out.read(1), b""):
+				# Get datum
+				match c[0]:
+					case 0: # Time
+						# Send current data
+						entry.write(csv_file)
+						csv_file.flush()
+						# Get time
+						entry.time = read_double(ssh_out)
+					case 1: # ADC Sample
+						entry.cell_volts = (
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out)
+						)
+					case 2: # IMU Sample
+						entry.acceleration = (
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out)
+						)
+						entry.angle = (
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out)
+						)
+					case 3: # GPS Sample
+						entry.satellites = int(ssh_out.read(1))
+						entry.location = (
+							read_double(ssh_out),
+							read_double(ssh_out)
+						)
+						entry.velocity = read_double(ssh_out)
+					case 4: # RPM Sample
+						entry.rpms = (
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out),
+							read_double(ssh_out)
+						)
+					case 5: # PWM Sample
+						entry.steering = read_double(ssh_out)
+						#TODO add throttle
+					case _: assert False, "unreachable"
+		except KeyboardInterrupt: pass
 
 if __name__ == "__main__": main()
