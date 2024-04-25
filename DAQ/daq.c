@@ -303,9 +303,9 @@ int run() {
 		pin_interrupts[j].bias = BiasNone;
 		pin_interrupts[j].interrupt = pwm_handlers[i];
 	}
-	// Begin interrupt polling
+	// Begin interrupt polling //TODO use NUM_INTERRUPTS
 	Handle handle;
-	if (begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle) < 0)
+	if (begin_interrupt_polling(pin_interrupts, RPM_INTERRUPTS, &handle) < 0)
 		return -13;
 
 	// --= Calculate sampling timings =-- //
