@@ -66,12 +66,9 @@ def main():
 	print("Starting SSH...")
 	ssh = sp.Popen(SSH_CMD, stdout=sp.PIPE, stdin=sp.PIPE, shell=True)
 	# Login
-	ssh_in = ssh.stdin
+	#TODO
 	ssh_out = ssh.stdout
-	assert ssh_in is not None
 	assert ssh_out is not None
-	ssh_in.write(b"admin\n") #TODO make this work
-	_ = ssh_out.read() 
 	# Open CSV
 	with open(CSV_FILE, "w") as csv_file:
 		Entry.write_header(csv_file)
@@ -126,7 +123,7 @@ def main():
 					case 5: # PWM Sample
 						entry.steering = read_double(ssh_out)
 						#TODO add throttle
-					case _: assert False, "unreachable"
+					case _: pass #TODO fine for now, but might make some garbage data to start
 		except KeyboardInterrupt: pass
 
 if __name__ == "__main__": main()
