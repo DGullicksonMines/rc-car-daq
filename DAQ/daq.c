@@ -329,21 +329,29 @@ int run() {
 			for (size_t i = 0; i < 3; i += 1) {
 				adc_low.config.channel = i;
 				adc_low.config.ready = false;
-				// if (ADC_configure(adc_low) < 0) return -4;
 				adc_high.config = adc_low.config;
-				if (ADC_configure(adc_high) < 0) return -4;
-				// while (ADC_is_ready(adc_low) == 0);
-				// if (ADC_read(adc_low, &ADC_sample[i]) != 1) return -5;
-				while (ADC_is_ready(adc_high) == 0);
-				if (ADC_read(adc_high, &ADC_sample[3 + i]) != 1) return -5;
+				if (ADC_configure(adc_high) >= 0) {
+					while (ADC_is_ready(adc_high) == 0);
+					if (ADC_read(adc_high, &ADC_sample[3 + i]) != 1) {
+						ADC_sample[3 + i] = 0.0;						
+					}
+				}
 			}
 			ADC_sample_recorded = false;
 			ADC_sample_sent = false;
 		}
 		// Sample IMU
 		if (i % IMU_interval == 0) {
-			if (IMU_read_acceleration(imu, &IMU_sample[0]) < 0) return -9;
-			if (IMU_read_angle(imu, &IMU_sample[3]) < 0) return -10;
+			if (IMU_read_acceleration(imu, &IMU_sample[0]) < 0) {
+				IMU_sample[0] = 0.0;
+				IMU_sample[1] = 0.0;
+				IMU_sample[2] = 0.0;
+			}
+			if (IMU_read_angle(imu, &IMU_sample[3]) < 0) {
+				IMU_sample[3] = 0.0;
+				IMU_sample[4] = 0.0;
+				IMU_sample[5] = 0.0;
+			}
 			IMU_sample_recorded = false;
 			IMU_sample_sent = false;
 		}
