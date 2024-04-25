@@ -219,9 +219,11 @@ void generic_pwm_handler(
 	if (active) {
 		active_duration = *prev_inactive_time - *prev_active_time;
 		total_duration = cur_time - *prev_active_time;
+		*prev_active_time = cur_time;
 	} else {
 		active_duration = cur_time - *prev_active_time;
 		total_duration = cur_time - *prev_inactive_time;
+		*prev_inactive_time = cur_time;
 	}
 	PWM_sample[index] = active_duration/total_duration;
 	//XXX Only one has to change for sample to be resent
