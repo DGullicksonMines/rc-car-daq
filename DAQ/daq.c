@@ -295,11 +295,13 @@ int run() {
 		pin_interrupts[i].interrupt = rpm_handlers[i];
 	}
 	// Setup pwm interrupts
-	for (size_t i = RPM_INTERRUPTS; i < NUM_INTERRUPTS; i += 1) {
-		pin_interrupts[i].pin = pwm_pins[i - RPM_INTERRUPTS];
-		pin_interrupts[i].edge = EdgeTypeBoth;
-		pin_interrupts[i].bias = BiasNone;
-		pin_interrupts[i].interrupt = pwm_handlers[i];
+	for (size_t i = 0; i < PWM_INTERRUPTS; i += 1) {
+		const size_t j = i + RPM_INTERRUPTS;
+		printf("setting interrupt %ld to pin %d \n", j, pwm_pins[i]);
+		pin_interrupts[j].pin = pwm_pins[i];
+		pin_interrupts[j].edge = EdgeTypeBoth;
+		pin_interrupts[j].bias = BiasNone;
+		pin_interrupts[j].interrupt = pwm_handlers[i];
 	}
 	// Begin interrupt polling
 	Handle handle;

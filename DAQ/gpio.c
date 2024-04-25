@@ -40,8 +40,6 @@ void *_polling(void *args) {
 
 	// Loop until cancelled
 	while (pthread_mutex_trylock(canceled) != 0) {
-		printf("looping \n");
-		continue;
 		// Poll for interrupt
 		const int poll_result = poll(&poll_fd, 1, 1000);
 		if (poll_result < 0) return (void *)-1; // Poll error
