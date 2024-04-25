@@ -71,6 +71,7 @@ def main():
 	assert ssh_in is not None
 	assert ssh_out is not None
 	ssh_in.write(b"admin\n")
+	_ = ssh_out.read() 
 	# Open CSV
 	with open(CSV_FILE, "w") as csv_file:
 		Entry.write_header(csv_file)
