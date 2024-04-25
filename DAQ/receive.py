@@ -9,6 +9,7 @@ ip_addr = input("IP Addr: ")
 SSH_CMD = ["ssh", f"rcCar@{ip_addr}", "~/rc-car-daq/DAQ/out/daq"]
 # SSH_CMD = ['type', 'data.bin']
 CSV_FILE = "DAQ.csv"
+LOG_FILE = "LOG.csv"
 
 @dc.dataclass
 class Entry:
@@ -70,7 +71,8 @@ def main():
 	ssh_out = ssh.stdout
 	assert ssh_out is not None
 	# Open CSV
-	with open(CSV_FILE, "w") as csv_file:
+	with open(CSV_FILE, "w") as csv_file, open(LOG_FILE, "w") as log_file:
+		Entry.write_header(log_file)
 		entry = Entry.new()
 		try:
 			for c in iter(lambda: ssh_out.read(1), b""):
@@ -82,6 +84,8 @@ def main():
 						Entry.write_header(csv_file)
 						entry.write(csv_file)
 						csv_file.flush()
+						entry.write(log_file)
+						log_file.flush()
 						# Get time
 						entry.time = read_double(ssh_out)
 					case 1: # ADC Sample
