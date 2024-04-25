@@ -152,6 +152,8 @@ void generic_rpm_handler(
 	bool *const all_valid,
 	size_t *const cur_idx
 ) {
+	printf("rpm handler \n");
+	return;
 	// Print RPM
 	const size_t first_idx = (*all_valid) ? *cur_idx : 0;
 	// const size_t prev_idx = (*cur_idx - 1 + NUM_TIMES) % NUM_TIMES;
@@ -214,6 +216,8 @@ void generic_pwm_handler(
 	double *prev_active_time,
 	double *prev_inactive_time
 ) {
+	printf("pwm handler \n");
+	return;
 	double active_duration;
 	double total_duration;
 	if (active) {
@@ -299,10 +303,8 @@ int run() {
 	}
 	// Begin interrupt polling
 	Handle handle;
-	(void)handle;
-	(void)pin_interrupts;
-	// if (begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle) < 0)
-	// 	return -13;
+	if (begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle) < 0)
+		return -13;
 
 	// --= Calculate sampling timings =-- //
 	const uint32_t send_interval = (uint32_t)(loop_frequency/send_frequency); // loops/send
@@ -376,7 +378,7 @@ int run() {
 	// --= Deinitialize and close resources =-- //
 	//TODO
 	// End interrupt polling
-	// if (end_interrupt_polling(&handle) < 0) return -14;
+	if (end_interrupt_polling(&handle) < 0) return -14;
 	// Deinitialize IMU
 	if (IMU_deinit(imu) < 0) return -8;
 	// Deinitialize ADCs
