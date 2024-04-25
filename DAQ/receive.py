@@ -73,9 +73,6 @@ def main():
 	with open(CSV_FILE, "w") as csv_file:
 		Entry.write_header(csv_file)
 		entry = Entry.new()
-		# Create zeros line to start
-		entry.time = 0
-		entry.write(csv_file)
 		try:
 			for c in iter(lambda: ssh_out.read(1), b""):
 				# Get datum
