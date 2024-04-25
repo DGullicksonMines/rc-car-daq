@@ -5,8 +5,9 @@ import typing as t
 import struct
 import subprocess as sp
 
-# SSH_CMD = ["ssh", "rcCar@rcCar" "./daq"]
-SSH_CMD = ['type', 'data.bin']
+ip_addr = input("IP Addr: ")
+SSH_CMD = ["ssh", f"rcCar@{ip_addr}" "./daq"]
+# SSH_CMD = ['type', 'data.bin']
 CSV_FILE = "TODO.csv" #TODO
 
 @dc.dataclass
@@ -62,9 +63,13 @@ def read_double(reader: t.IO[bytes]) -> float:
 
 def main():
 	# Start SSH
-	ssh = sp.Popen(SSH_CMD, stdout=sp.PIPE, shell=True)
+	ssh = sp.Popen(SSH_CMD, stdout=sp.PIPE, stdin=sp.PIPE, shell=True)
+	# Login
+	ssh_in = ssh.stdin
 	ssh_out = ssh.stdout
+	assert ssh_in is not None
 	assert ssh_out is not None
+	ssh_in.write(b"admin\n")
 	# Open CSV
 	with open(CSV_FILE, "w") as csv_file:
 		Entry.write_header(csv_file)
