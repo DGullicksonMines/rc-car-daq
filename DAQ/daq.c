@@ -299,6 +299,8 @@ int run() {
 	}
 	// Begin interrupt polling
 	Handle handle;
+	(void)handle;
+	(void)pin_interrupts;
 	// if (begin_interrupt_polling(pin_interrupts, NUM_INTERRUPTS, &handle) < 0)
 	// 	return -13;
 
