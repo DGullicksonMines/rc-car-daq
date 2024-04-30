@@ -2,9 +2,7 @@
 
 //NOTE Start GPSD using
 // ```
-// sudo systemctl stop gpsd.socket
-// sudo systemctl disable gpsd.socket
-// sudo gpsd /dev/ttyAMA0 -F /var/run/gpsd.sock
+// sudo gpsd -n /dev/ttyAMA0
 // ```
 
 #include <stdbool.h>
@@ -34,6 +32,8 @@ void callback(struct gps_data_t *gps_data) {
 int main() {
 	signal(SIGINT, sigint_handler);
 
+	//TODO we could start gpsd automatically here
+
 	// Open GPSD connection
 	struct gps_data_t gps_data;
 	int res = gps_open(GPSD_SHARED_MEMORY, "", &gps_data);
@@ -43,7 +43,7 @@ int main() {
 	}
 
 	// Register callback
-	res = gps_mainloop(&gps_data, -1, &callback);
+	res = gps_mainloop(&gps_data, 1000, &callback);
 	if (res < 0) {
 		printf("error %d: registering gps callback \n", res);
 		return -2;
